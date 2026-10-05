@@ -2,7 +2,7 @@
 
 ## Status (6 Oct 2026)
 - Setup done: transcripts of all 24 videos, book downloaded, skeleton from the Mehrling repo.
-- Chapter 1 (videos 1–2) written and checked; chapters 2–8 to do, in order. Their `\include`
+- Chapters 1–5 written and checked (scripts in code/, figures in lecture-notes/figures/); chapters 6–8 (Koopman, Koopman control, HAVOK) to do.
   lines (and the `\part`s II, III) are commented out in `main.tex` until they exist.
 - No GitHub remote yet (to create: private `alessiomartini/lecture-notes-dynamical-systems-data`).
 

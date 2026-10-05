@@ -1,0 +1,301 @@
+% !TEX root = ../main.tex
+\chapter{Sparse Identification of Nonlinear Dynamics}\label{ch:sindy}
+\begin{paracol}{2}
+
+\begin{sources}
+\begin{tabularx}{\linewidth}{@{}V l L@{}}
+\toprule
+\textbf{Video} & \textbf{Length} & \textbf{Content}\\
+\midrule
+\seg{5}{1}{V5.1 Sparse Identification of Nonlinear Dynamics (SINDy)} & 26:44 & The SINDy regression on Lorenz; noisy data and TV derivatives; the cylinder wake and the mean-field model (history from Ruelle--Takens to Noack); kicking off the attractor; parametrized, time-dependent and forced models; SINDy in delay coordinates; SINDy with control; open questions.\\
+\seg{5}{2}{V5.2 PDE FIND} & 10:36 & (Speaker: Samuel Rudy; uploaded by N.~Kutz.) Discovering PDEs $u_t=N(u,u_x,\dots)$ by sparse regression; derivatives; sequential threshold ridge regression; Navier--Stokes from 1\% of the data; the soliton ambiguity (advection vs KdV); a gallery of PDEs.\\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+\textbf{Transcripts} \file{materials/transcripts/C05-V0*.txt}.
+\textbf{Book} Sec.~7.3 (SINDy); Sec.~3.5 (sparse regression); Sec.~4.4--4.7 (regression, model selection).
+\textbf{Papers} S.~L.~Brunton, J.~L.~Proctor, J.~N.~Kutz, PNAS 113 (2016) 3932--3937; S.~H.~Rudy,
+S.~L.~Brunton, J.~L.~Proctor, J.~N.~Kutz, Sci.\ Adv.\ 3 (2017) e1602614.
+\textbf{Code} \file{code/ch05_sindy.py}, \file{ch05_pdefind.py}.
+\end{sources}
+
+\section*{Motivation}
+DMD (\cref{ch:dmd}) fits a \emph{linear} model to data. SINDy goes after the second primary challenge of
+\cref{ch:overview}, unknown dynamics, head on: it discovers the nonlinear right-hand side $\vb f$ itself,
+as a short formula, from measurements \ts{5}{1}{0:04}. If we had $\vb f$ we could integrate trajectories,
+compute coherent structures and FTLEs, quantify uncertainty \ts{5}{1}{0:45}\ts{5}{1}{1:06}; in neuroscience or
+climate science we do not have it, so we want to discover it from data \ts{5}{1}{1:27}. The key assumption is
+\emph{parsimony}: in the right coordinates, $\vb f$ has only a few terms.
+
+% ------------------------------------------------------------------
+\section{The SINDy algorithm}\label{sec:si-algorithm}
+
+\paragraph{Sparsity in function space.} In the Lorenz equations \eqref{eq:si-lorenz} the $\dot x$ equation
+contains only $x$ and $y$; $\dot y$ contains $x$, $xz$ and $y$; $\dot z$ contains $z$ and $xy$
+\ts{5}{1}{1:49}\ts{5}{1}{2:09}. Out of all possible right-hand sides this one is very special: it is
+\emph{sparse} in the space of candidate functions \ts{5}{1}{2:30}\ts{5}{1}{3:11}.
+
+\begin{definition}[New concepts: library, SINDy]\label{def:sindy}
+From $m$ samples of the state and its derivative, build
+\[
+  X=\begin{bmatrix}\vb x^{\mathsf T}(t_1)\\\vdots\\\vb x^{\mathsf T}(t_m)\end{bmatrix}\in\R^{m\times n},\qquad
+  \dot X\in\R^{m\times n},
+\]
+and a \textbf{library} of candidate functions evaluated on the data,
+$\Theta(X)=\begin{bmatrix}\vb 1 & X & X^{P_2} & X^{P_3}&\cdots\end{bmatrix}$, where $X^{P_2}$ holds all
+quadratic monomials ($x^2,xy,xz,y^2,\dots$), and so on \ts{5}{1}{3:32}. \textbf{SINDy} (Sparse
+Identification of Nonlinear DYnamics) solves
+\begin{equation}\label{eq:sindy}
+  \dot X\approx\Theta(X)\,\Xi,\qquad \Xi=[\boldsymbol\xi_1\cdots\boldsymbol\xi_n]\ \text{sparse},
+\end{equation}
+one sparse regression per state variable: $\dot{\vb x}_k\approx\Theta(X)\boldsymbol\xi_k$ \ts{5}{1}{3:52}\ts{5}{1}{4:12}.
+The identified model is $\dot x_k=\boldsymbol\theta(\vb x^{\mathsf T})\boldsymbol\xi_k$, with
+$\boldsymbol\theta$ the row of library functions.
+\end{definition}
+
+\paragraph{Why sparse regression.} Plain least squares would use ``a little bit of all'' the columns
+\ts{5}{1}{5:34}; an $\ell_1$-penalized (or thresholded) regression finds a good fit with as few terms as
+possible \ts{5}{1}{5:56}. Options: the LASSO of Tibshirani, or the \emph{sequentially thresholded least
+squares} of the paper \ts{5}{1}{4:53}.
+
+\begin{definition}[New concepts: LASSO, sequentially thresholded least squares]
+\begin{enumerate}[(a)]
+  \item \textbf{LASSO} (Least Absolute Shrinkage and Selection Operator, Tibshirani 1996):
+        $\min_{\boldsymbol\xi}\lVert\dot{\vb x}-\Theta\boldsymbol\xi\rVert_2^2+\alpha\lVert\boldsymbol\xi\rVert_1$.
+  \item \textbf{STLSQ}: solve least squares; set to zero every coefficient with
+        $|\xi_i|<\lambda$; solve least squares again on the surviving columns; repeat until the support
+        stops changing. The threshold $\lambda$ is the sparsity knob.
+\end{enumerate}
+\end{definition}
+
+\codefile{SINDy on the Lorenz system}{../code/ch05_sindy.py}
+
+The script, with derivatives computed from the data by finite differences and a library of all 56
+monomials up to order 5, prints
+\[
+  \dot x=-10.000x+10.000y,\quad \dot y=27.998x-1.000y-1.000xz,\quad \dot z=-2.667z+1.000xy ,
+\]
+the Lorenz system with its parameters; least squares would have kept 133 of the 168 coefficients. As in
+the video: same structure, virtually the same $\sigma,\rho,\beta$, same dynamics on the attractor
+\ts{5}{1}{6:16}.
+
+\begin{intuition}[Occam's razor as an optimization]
+The threshold implements a Pareto trade-off between accuracy and complexity: as $\lambda$ grows, terms
+drop out; the right model sits at the ``knee'', where removing one more term makes the error jump. Choosing
+$\lambda$ is model selection (cross-validation, information criteria such as AIC; book Sec.~4.6--4.7).
+\end{intuition}
+
+\paragraph{Noise and derivatives.} One rarely measures $\dot{\vb x}$; it must be computed from $\vb x$
+\ts{5}{1}{6:58}. With very noisy measurements of $x,y,z$, \emph{total-variation regularized} derivatives
+(TVDiff, R.~Chartrand) still allow correct structure identification and an accurate reconstruction of the
+attractor \ts{5}{1}{7:18}\ts{5}{1}{7:39}; both steps are numerically robust \ts{5}{1}{7:59}.
+
+\begin{secondary}[Total-variation regularized differentiation]
+Find $u\approx\dot f$ as $\min_u\ \alpha\int|u'|\,\mathrm dt+\tfrac12\int\big|\!\int_0^tu-f\big|^2\mathrm dt$:
+the integral of the derivative must reproduce the signal, while the total variation of the derivative is
+penalized. Unlike finite differences, which amplify noise by $1/\Delta t$, this gives piecewise-smooth
+derivatives. Alternatives: Savitzky--Golay filters, local polynomial fits (as in PDE-FIND), or the weak
+(integral) form of SINDy, which avoids derivatives altogether.
+\end{secondary}
+
+% ------------------------------------------------------------------
+\section{The cylinder wake: rediscovering the mean-field model}\label{sec:si-cylinder}
+
+\begin{casestudy}[Thirty years in a regression]
+A benchmark of fluid dynamics: flow past a cylinder, with vortex shedding \ts{5}{1}{8:20}. A low-order model
+for it took decades \ts{5}{1}{8:40}:
+\begin{enumerate}
+  \item Ruelle and Takens (1971), after Landau and Hopf, proposed a route to turbulence through successive
+        Hopf bifurcations \ts{5}{1}{9:00}\ts{5}{1}{9:21};
+  \item about 15 years later, Zebib, Jackson and others verified numerically that the cylinder wake
+        undergoes a Hopf bifurcation at Reynolds number $\approx47$, after which laminar periodic shedding
+        sets in \ts{5}{1}{9:42}\ts{5}{1}{10:02};
+  \item a paradox: the Hopf normal form \eqref{eq:fu-hopf} has \emph{cubic} terms, but Navier--Stokes has
+        only \emph{quadratic} nonlinearity (convection) \ts{5}{1}{10:23}\ts{5}{1}{10:43};
+  \item 15 years later again, Noack et al.\ (J.\ Fluid Mech.\ 2003) resolved it with a separation of time
+        scales: the \emph{mean-field model}
+        \begin{equation}\label{eq:si-meanfield}
+          \dot x=\mu x-\omega y+Axz,\qquad \dot y=\omega x+\mu y+Ayz,\qquad \dot z=-\lambda(z-x^2-y^2),
+        \end{equation}
+        where $x,y$ are the amplitudes of the two shedding modes and $z$ the ``shift mode'' between the
+        unstable steady flow and the mean flow. $z$ is fast: it collapses onto the slow parabolic manifold
+        $z=x^2+y^2$, on which the dynamics winds out to periodic shedding \ts{5}{1}{11:04}\ts{5}{1}{11:24}\ts{5}{1}{11:46}.
+        Only quadratic terms, yet a Hopf bifurcation \ts{5}{1}{12:06}.
+\end{enumerate}
+SINDy, fed the time series of the first two POD modes and the shift mode from a simulation, identifies a
+model with the same structure: only quadratic terms, the slow parabolic manifold, the spiral onto shedding
+\ts{5}{1}{12:27}\ts{5}{1}{12:48}\ts{5}{1}{13:10}.
+\end{casestudy}
+
+\begin{proposition}[Cubic from quadratic]
+On the slow manifold $z=x^2+y^2$, model \eqref{eq:si-meanfield} reduces to the Hopf normal form
+$\dot r=\mu r+Ar^3$ (supercritical for $A<0$), $\dot\theta=\omega$.
+\end{proposition}
+\begin{proof}
+With $r^2=x^2+y^2$: $r\dot r=x\dot x+y\dot y=\mu r^2+Ar^2z$, so $\dot r=\mu r+Arz$; substituting $z=r^2$
+gives $\dot r=\mu r+Ar^3$. Also $r^2\dot\theta=x\dot y-y\dot x=\omega r^2$. The cubic term is generated by
+eliminating the fast variable: adiabatic elimination.
+\end{proof}
+
+\paragraph{Kick it off the attractor.} If the data start on the slow manifold, SINDy wrongly identifies
+\emph{cubic} terms (the reduced model of the proposition) \ts{5}{1}{13:51}. To get the quadratic model one
+must start off the attractor, e.g.\ from the mean flow, and watch the system fall back \ts{5}{1}{14:12}.
+General strategy: to identify the dynamics near an attractor, kick the system off it and see how it
+returns \ts{5}{1}{14:32}.
+
+% ------------------------------------------------------------------
+\section{Extensions: parameters, forcing, delays, control}\label{sec:si-extensions}
+
+\paragraph{Parametrized dynamics ``for free''.} Treat a parameter $\mu$ as an extra state with
+$\dot\mu=0$ and include it in the library ($\mu,\mu x,\mu x^2,\dots$) \ts{5}{1}{14:53}\ts{5}{1}{15:35}. For the
+logistic map, training on 10 values of $\mu$ yields a parametrized model that reproduces the whole
+bifurcation diagram \ts{5}{1}{15:14}\ts{5}{1}{15:56}; likewise for the Hopf normal form \ts{5}{1}{15:56}. In the same
+way one can add time ($\sin t$, $t^2$, \dots) for non-autonomous systems, or external forcing such as CO$_2$
+in a climate model \ts{5}{1}{16:16}\ts{5}{1}{16:36}.
+
+\paragraph{Delay coordinates.} What if only $x$ of the Lorenz system is measured \ts{5}{1}{16:58}\ts{5}{1}{17:18}?
+Build the \emph{Hankel matrix} of shifted copies of the time series \ts{5}{1}{17:39}\ts{5}{1}{18:00},
+\begin{equation}\label{eq:si-hankel}
+  H=\begin{bmatrix}x_1&x_2&\cdots&x_{m-p+1}\\ x_2&x_3&\cdots&x_{m-p+2}\\ \vdots&&&\vdots\\ x_p&x_{p+1}&\cdots&x_m\end{bmatrix}
+  =U\Sigma V^*.
+\end{equation}
+The SVD gives ``eigen time-delay coordinates'': the first columns of $V$ reconstruct an attractor
+topologically equivalent to Lorenz's, as Takens' embedding theorem guarantees \ts{5}{1}{18:21}\ts{5}{1}{18:42}.
+Running SINDy on the first three columns of $V$ gives a sparse model that reproduces the attractor
+\ts{5}{1}{19:02}\ts{5}{1}{19:25}. The same SVD of a Hankel matrix underlies singular spectrum analysis (SSA) in
+climate science and the eigensystem realization algorithm (ERA) in system identification; Broomhead and King
+(1986) already plotted Lorenz in these coordinates. What is new is a \emph{nonlinear model} on them
+\ts{5}{1}{19:45}\ts{5}{1}{20:06}. Chapter~8 (HAVOK) develops this.
+
+\begin{theorem}[Takens, 1981, informal]\label{thm:si-takens}
+Let the dynamics evolve on a compact attractor of box dimension $d$ and let $h$ be a generic scalar
+measurement. Then for $p>2d$ the delay map $\vb x\mapsto(h(\vb x),h(\vb F_{\tau}\vb x),\dots,h(\vb F_{(p-1)\tau}\vb x))$ is
+an embedding: a one-to-one, smooth image of the attractor.
+\end{theorem}
+
+\paragraph{SINDy with control.} For $\dot{\vb x}=\vb f(\vb x)+\vb g(\vb u)$, where $\vb u$ may be an
+exogenous forcing or a feedback law and may enter nonlinearly ($u^3$, $\sin u$), include $\vb u$ in the
+library \ts{5}{1}{20:27}\ts{5}{1}{20:47}\ts{5}{1}{21:08}\ts{5}{1}{21:29}. In the example, Lorenz is trained for $t\in[0,20]$
+under a feedback $u=26-x$ plus noise; at $t=20$ the control law is switched. Plain SINDy fails, because it
+never knew there was forcing; SINDy with control tracks the new data, because it disentangled the effect of
+the control from the dynamics \ts{5}{1}{22:10}\ts{5}{1}{22:31}\ts{5}{1}{22:52}.
+
+\paragraph{The recipe and its open questions} \ts{5}{1}{23:12}\ts{5}{1}{23:33}:
+\begin{enumerate}
+  \item measure (all the state if possible, otherwise build delay coordinates);
+  \item choose a basis (library) in which the dynamics is sparse;
+  \item sparse regression for the fewest terms that explain the data.
+\end{enumerate}
+\begin{itemize}
+  \item \emph{Did I measure the right variables?} Delay embeddings give tools to check whether enough
+        variables are measured and whether they carry new information \ts{5}{1}{24:35}\ts{5}{1}{24:55}.
+  \item \emph{Is the library right?} Harder. Physics guides it (Navier--Stokes means quadratic terms); in
+        general, try polynomials, trigonometric functions, rational functions \ts{5}{1}{24:55}\ts{5}{1}{25:17}\ts{5}{1}{25:37}.
+  \item The regression is the easy part \ts{5}{1}{25:58}\ts{5}{1}{26:18}.
+\end{itemize}
+
+\begin{history}[Ruelle and Takens]
+David Ruelle and Floris Takens, \emph{On the nature of turbulence}, Commun.\ Math.\ Phys.\ 20 (1971)
+167--192, coined the term \emph{strange attractor} and argued against Landau's (1944) picture of turbulence
+as an infinite cascade of Hopf bifurcations: after only a few, a strange attractor generically appears. The
+paper was rejected by another journal first and appeared in a journal of which Ruelle was an editor. Takens'
+embedding theorem appeared in \emph{Detecting strange attractors in turbulence} (Lecture Notes in Math.\ 898,
+1981), the same year as Packard, Crutchfield, Farmer and Shaw's delay reconstruction (PRL 1980).\par
+\textit{References:} D.~Ruelle, \emph{Chance and Chaos} (Princeton, 1991); the papers cited.
+\end{history}
+
+% ------------------------------------------------------------------
+\section{PDE-FIND: discovering partial differential equations}\label{sec:si-pdefind}
+
+The same idea for spatio-temporal data, presented by Samuel Rudy \ts{5}{2}{0:03}. Assume the data solve an
+unknown PDE with one time derivative,
+\begin{equation}\label{eq:si-pde}
+  u_t=N(u,u_x,u_{xx},\dots,Q),
+\end{equation}
+where $Q$ is extra information (a potential, a velocity field), and that $N$ is sparse in a guessed basis,
+e.g.\ polynomials in $u$ and its derivatives \ts{5}{2}{0:24}\ts{5}{2}{0:45}\ts{5}{2}{1:06}.
+
+\paragraph{Steps} \ts{5}{2}{1:48}--\ts{5}{2}{3:35}:
+\begin{enumerate}
+  \item compute $u_t$ and the spatial derivatives from the discretized data: finite differences if the
+        data are clean; with noise, a smoothing method (local polynomial interpolation works, but choosing
+        the number of points and the degree is tricky) \ts{5}{2}{2:08};
+  \item stack every space-time point as one row: $U_t\approx\Theta(U,Q)\,\boldsymbol\xi$, with columns
+        such as $1,u,u_x,u^2,uu_x,\dots$ (nothing forbids $\cos u$ if physics suggests it)
+        \ts{5}{2}{2:30}\ts{5}{2}{2:50}\ts{5}{2}{3:10};
+  \item solve for a sparse $\boldsymbol\xi$.
+\end{enumerate}
+Least squares always gives dense solutions (a 100-term PDE whose terms are mostly noise), and the
+columns of $\Theta$ are correlated, so the matrix is ill-conditioned \ts{5}{2}{3:35}\ts{5}{2}{3:56}\ts{5}{2}{4:17}.
+Among LASSO, elastic net, greedy methods and thresholding, Rudy chose \emph{sequential threshold ridge
+regression} (STRidge): ridge estimate, cut coefficients below a threshold, repeat on the survivors
+\ts{5}{2}{4:17}\ts{5}{2}{4:37}. For Navier--Stokes the sparse fit keeps the 4 correct terms, least squares
+keeps all 60 \ts{5}{2}{4:58}\ts{5}{2}{5:19}; the coefficients are within 1\% \ts{5}{2}{6:24}.
+
+\codefile{PDE-FIND on Burgers' equation}{../code/ch05_pdefind.py}
+
+The script generates Burgers' equation $u_t=-uu_x+0.1u_{xx}$ spectrally, computes all derivatives with
+finite differences, and from a library of 12 terms finds $u_t=0.1016\,u_{xx}-1.0008\,uu_x$; with a random
+1\% of the rows, $u_t=0.1016\,u_{xx}-1.0030\,uu_x$.
+
+\paragraph{Sub-sampling.} The number of rows is the number of data points, about 13 million for a 2D
+Navier--Stokes data set in time; using about 1\% of them (dropping rows) gives the same result
+\ts{5}{2}{6:45}\ts{5}{2}{7:06}.
+
+\paragraph{Which PDE? The soliton ambiguity.} A function may solve many PDEs \ts{5}{2}{7:30}. A single KdV
+soliton, $u=\frac c2\operatorname{sech}^2\!\big(\frac{\sqrt c}{2}(x-ct)\big)$, also solves the advection
+equation $u_t=-cu_x$, and PDE-FIND returns the simpler one, advection \ts{5}{2}{7:50}. Two solitons of
+different speeds in one solution, or two separate solutions with solitons of different amplitudes, force a
+nonlinear PDE, and PDE-FIND finds KdV \ts{5}{2}{8:10}\ts{5}{2}{8:31}\ts{5}{2}{8:52}. The lesson: the data must
+be rich enough to exclude the alternatives, as in ``kick it off the attractor''.
+
+\paragraph{Gallery.} KdV, Burgers, nonlinear Schr\"odinger, linear Schr\"odinger in a harmonic potential,
+Kuramoto--Sivashinsky, reaction--diffusion, vorticity equation of Navier--Stokes: all recovered
+\ts{5}{2}{9:13}\ts{5}{2}{9:33}. With noise, Kuramoto--Sivashinsky keeps the right sparsity pattern but its
+coefficients are badly underestimated (52\% error) \ts{5}{2}{9:33}. Noise complicates everything through the
+derivatives; next steps are real data and latent variables \ts{5}{2}{9:55}\ts{5}{2}{10:15}.
+
+\begin{keyformulas}
+\begin{itemize}
+  \item SINDy: $\dot X\approx\Theta(X)\Xi$, $\Xi$ sparse (STLSQ or LASSO), one regression per variable.
+  \item Library extensions: parameters ($\dot\mu=0$), time, forcing $\vb u$ (SINDYc), delay coordinates
+        from the SVD of the Hankel matrix.
+  \item Mean-field model: quadratic terms + fast variable $\Rightarrow$ cubic Hopf on $z=x^2+y^2$.
+  \item PDE-FIND: $U_t\approx\Theta(U,U_x,U_{xx},\dots)\boldsymbol\xi$, STRidge; derivatives are the hard part.
+\end{itemize}
+\end{keyformulas}
+
+\section*{Exercises}
+
+\begin{exercise}[Noise and threshold]
+Add Gaussian noise of standard deviation $\eta$ to $X$ in \file{ch05_sindy.py} before differentiating.
+For $\eta=0.01,0.1,1$, find the range of $\lambda$ for which the correct structure is found. Replace the
+finite differences by a Savitzky--Golay filter (\texttt{scipy.signal.savgol\_filter} with \texttt{deriv=1})
+and compare.
+\end{exercise}
+
+\begin{exercise}[Mean-field model]
+Simulate \eqref{eq:si-meanfield} with $\mu=0.1$, $\omega=1$, $A=-0.1$, $\lambda=10$ from an initial
+condition on the slow manifold, and from one off it ($z$ far from $x^2+y^2$). Run SINDy with polynomials up
+to order 3 on both data sets: which one gives the quadratic model, which one the cubic normal form?
+\end{exercise}
+
+\begin{exercise}[Parametrized logistic map]
+Generate logistic-map data for $\mu\in\{2.5,2.75,\dots,3.95\}$ (10 values), build a library of monomials in
+$(x,\mu)$ up to order 4, and fit $x_{k+1}$ (a map: no derivative needed). Use the model to draw the
+bifurcation diagram on $[2.5,4]$ and compare with \cref{fig:si-logistic}.
+\end{exercise}
+
+\begin{exercise}[Soliton ambiguity]
+Generate one KdV soliton and run \file{ch05_pdefind.py} with a library containing $u_{xxx}$ and $uu_x$.
+Explain why the regression cannot distinguish $u_t=-cu_x$ from $u_t=-6uu_x-u_{xxx}$, and verify that both
+are satisfied (choose the soliton normalization accordingly).
+\end{exercise}
+
+\begin{exercise}[Delay embedding]
+Using only $x(t)$ from \file{ch03_lorenz.py}, build $H$ with $p=100$ and plot $v_1,v_2,v_3$ (columns of
+$V$). How many singular values are significant? Compare the picture with the Lorenz attractor.
+\end{exercise}
+
+\end{paracol}
