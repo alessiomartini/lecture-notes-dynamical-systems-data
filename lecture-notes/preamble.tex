@@ -340,6 +340,10 @@
   showstringspaces=false,breaklines=true,upquote=true}
 \newtcblisting{code}[1][]{notebox=srccol,colback=srccol!4,listing only,listing options={style=py},
   title={\boxtitle{Python}{#1}}}
+%  \codefile{topic}{../code/chNN_name.py}: the same box, reading a script of ../code (run it from the
+%  repository root to regenerate the figures in figures/), so notes and scripts never diverge
+\newcommand{\codefile}[2]{\tcbinputlisting{notebox=srccol,colback=srccol!4,listing only,
+  listing options={style=py},listing file={#2},title={\boxtitle{Python}{#1}~{\normalfont\ttfamily\footnotesize(\detokenize{#2})}}}}
 
 % ---------- file references ----------
 \DeclareRobustCommand{\file}[1]{\texttt{\small\detokenize{#1}}}
