@@ -1,0 +1,15 @@
+# Generated / local only (LaTeX artefacts are ignored in lecture-notes/.gitignore)
+build/
+.history/
+__pycache__/
+*.pyc
+Thumbs.db
+.DS_Store
+
+# Large downloads kept only locally
+materials/*.zip
+*.mp4
+materials/web/*_files/
+materials/web/MOOC _ Perry Mehrling - Economics of Money and Banking - YouTube.pdf
+materials/databook.pdf
+materials/databook.txt

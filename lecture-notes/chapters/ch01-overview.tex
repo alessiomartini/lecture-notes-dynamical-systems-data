@@ -1,0 +1,595 @@
+% !TEX root = ../main.tex
+\chapter{Overview and Anatomy of a Dynamical System}\label{ch:overview}
+\begin{paracol}{2}
+
+\begin{sources}
+\begin{tabularx}{\linewidth}{@{}l l L@{}}
+\toprule
+\textbf{Video} & \textbf{Length} & \textbf{Content}\\
+\midrule
+\seg{1}{1}{V1.1 Data-Driven Dynamical Systems Overview} & 21:43 & The general system $\dot{\vb x}=\vb f(\vb x,t,\vb u;\boldsymbol\beta)$; from first principles to data; challenges (nonlinearity, unknown dynamics, dimension, chaos, noise, multiscale, uncertainty); uses (prediction, design, control, interpretability); techniques (regression, neural networks, genetic programming); Koopman coordinates; physics in the learning.\\
+\seg{1}{2}{V1.2 The Anatomy of a Dynamical System} & 17:53 & The same anatomy in more detail: state, dynamics, time, control, parameters, measurements; the challenges as optimization problems; interpretable and generalizable models.\\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+\textbf{Transcripts} \file{materials/transcripts/C01-V01.txt}, \file{C01-V02.txt}.
+\textbf{Book} Brunton \& Kutz, \emph{Data-Driven Science and Engineering}, Chapter~7 introduction and
+Sec.~7.1 ``Overview, motivations, and challenges''. The second video (recorded about three years after
+the first) repeats much of the first: the two are merged here, and each point is tagged with the
+video where it is said best.
+\end{sources}
+
+\section*{Motivation}
+These two short videos open the series. They contain no algorithm: they fix the language used in all
+the following chapters (state, dynamics, control, parameters, measurements) and they set the agenda,
+that is, which problems of dynamical systems are still open and why data and machine learning might
+help with them. The thesis is simple. For three centuries dynamical systems were \emph{derived}: one
+wrote down Newton's law, a Lagrangian or a Hamiltonian, and obtained the equations of motion. For many
+systems of interest today (the brain, the climate, an epidemic, a financial market) there is no such
+first-principles equation, but there is more and more \emph{data}. The program of the course is to
+\emph{learn} the dynamical system from the data, in a form that is still interpretable
+\ts{1}{1}{0:22}\ts{1}{1}{4:50}.
+
+The reading for a physicist: nothing in this chapter is new mathematics, but the point of view is
+not the textbook one. In a course on classical mechanics the equations are given and one studies
+their solutions; here the solutions (the data) are given and one looks for the equations.
+
+% ------------------------------------------------------------------
+\section{The anatomy of a dynamical system}\label{sec:ov-anatomy}
+
+\paragraph{Why data, why now.} Two things happened at the same time \ts{1}{1}{0:43}:
+\begin{enumerate}
+  \item an explosion of data, from experiments, simulations and historical records, in climate
+        science, neuroscience, disease modelling, fluid dynamics and almost every other field;
+  \item much better algorithms in machine learning, regression and optimization.
+\end{enumerate}
+Their confluence makes it possible, for the first time, to discover and characterize dynamical
+systems purely from data \ts{1}{1}{1:03}.
+
+\paragraph{The general form.} Dynamical systems are our models of the evolving world: how fluids mix,
+how a rocket flies and lands, how a disease spreads on a network \ts{1}{2}{0:06}. They are
+fundamentally tied to \emph{time}: they describe how things change and co-evolve in time
+\ts{1}{2}{1:28}. The general object of the course is a system of coupled ordinary differential
+equations \ts{1}{1}{2:26}\ts{1}{2}{1:49}
+\begin{equation}\label{eq:ov-general}
+  \frac{\mathrm d}{\mathrm dt}\vb x(t) = \vb f\big(\vb x(t),\,t,\,\vb u(t);\,\boldsymbol\beta\big),
+  \qquad
+  \vb y(t) = \vb g\big(\vb x(t),\,t\big),
+\end{equation}
+together with the measurements $\vb y$ that we can actually take of it. Each symbol is one ``organ''
+of the anatomy.
+
+\begin{definition}[New concepts: the anatomy of a dynamical system]\label{def:ov-anatomy}
+In \eqref{eq:ov-general}:
+\begin{enumerate}[(a)]
+  \item the \textbf{state} $\vb x\in\R^n$ is the minimal set of numbers that describes the system
+        uniquely at one instant; $n$ is the \emph{dimension} of the system \ts{1}{2}{1:49};
+  \item the \textbf{dynamics} $\vb f=(f_1,\dots,f_n)$ is a vector-valued function: $f_j$ gives the
+        rate of change $\dot x_j$ of the $j$-th state variable. Since it assigns a vector
+        $\vb f(\vb x)$ to every point $\vb x$ of state space, it is also called a \textbf{vector field}
+        \ts{1}{1}{3:49}\ts{1}{2}{2:52};
+  \item $t$ is \textbf{time}. If $\vb f$ depends explicitly on $t$ the system is
+        \textbf{non-autonomous}, otherwise it is \textbf{autonomous} \ts{1}{1}{2:26};
+  \item the \textbf{control} (or \emph{actuation}, \emph{input}) $\vb u$ collects the variables we can
+        manipulate actively, the ``knobs'' \ts{1}{2}{4:14};
+  \item the \textbf{parameters} $\boldsymbol\beta$ are all the other constants on which $\vb f$
+        depends, which we do not control but want to understand \ts{1}{2}{4:55};
+  \item the \textbf{measurements} (or \emph{outputs}) $\vb y=\vb g(\vb x,t)$ are what we can actually
+        observe; in general $\vb y$ has far fewer components than $\vb x$ \ts{1}{2}{5:15}.
+\end{enumerate}
+\end{definition}
+
+\begin{aside}[Where the names come from]
+\emph{Dynamical} comes from the Greek \emph{dýnamis}, ``power, force'': dynamics was the part of
+mechanics that studies motion together with the forces that cause it (Leibniz coined
+\emph{dynamica} in the 1690s). The word survived the forces: a ``dynamical system'' today is any rule
+that makes a state evolve in time. \emph{Autonomous} is from the Greek \emph{autós} ``self'' and
+\emph{nómos} ``law'': the system obeys its own law, with no external clock.
+\emph{Actuation} is from the medieval Latin \emph{actuare}, ``to put into action''.
+\end{aside}
+
+\paragraph{The state.} The state is the minimal description: for a pendulum the angle $\theta$ alone
+is not enough, because the same angle can be crossed with different speeds; the state is
+$\vb x=(\theta,\dot\theta)$ \ts{1}{2}{2:09}. The state can be enormous: for the stock market it might be
+the value of all the stocks (and possibly more information), for the weather the conditions on a
+one-kilometre grid covering the Earth \ts{1}{2}{2:31}.
+
+\begin{example}[The pendulum]\label{ex:ov-pendulum}
+A pendulum of length $L$ in gravity $g$ obeys $\ddot\theta=-(g/L)\sin\theta$. With
+$\vb x=(x_1,x_2)=(\theta,\dot\theta)$ it becomes a first-order system
+\[
+  \dot x_1=x_2,\qquad \dot x_2=-\frac{g}{L}\sin x_1 ,
+\]
+so $n=2$ and $\boldsymbol\beta=(g,L)$ (and the mass, which drops out here). If the pivot is mounted on
+a cart that we can drive, the cart's acceleration is a control $u$ \ts{1}{2}{4:34}. If we film the
+pendulum and extract only the horizontal position of the bob, the measurement is
+$y=L\sin x_1$: one number, from which the state must be reconstructed.
+\end{example}
+
+\paragraph{The dynamics as a vector field.} Every $n$-th order ODE can be written as a first-order
+system by enlarging the state, as in the pendulum; so \eqref{eq:ov-general} is fully general. The
+picture to keep in mind is the vector field: at every point of state space $\vb f$ is an arrow
+saying how fast and in which direction the state moves \ts{1}{1}{4:09}. A solution is a curve
+everywhere tangent to the arrows (\cref{fig:ov-pendulum}). Often $\vb f$ comes from Newton's second
+law or something like it \ts{1}{2}{3:12}.
+
+\begin{nfigure}
+\begin{tikzpicture}[x=1.15cm,y=0.95cm,>=Stealth]
+  % vector field of the pendulum, arrows normalised to a fixed length
+  \foreach \t in {-3.0,-2.5,...,3.01} {
+    \foreach \w in {-2.5,-2.0,...,2.51} {
+      \pgfmathsetmacro{\u}{\w}
+      \pgfmathsetmacro{\v}{-sin(\t r)}
+      \pgfmathsetmacro{\n}{max(sqrt(\u*\u+\v*\v),0.001)}
+      \draw[->,srccol!70,thin] (\t,\w) -- ++(0.32*\u/\n,0.32*\v/\n);
+    }
+  }
+  % closed orbits (oscillations): energy E = w^2/2 - cos(theta) = c
+  \foreach \c in {-0.8,-0.4,0.3} {
+    \pgfmathsetmacro{\tm}{acos(-\c)*pi/180-0.005}
+    \draw[intcol,thick,smooth,samples=60,domain=-\tm:\tm] plot (\x,{sqrt(2*(\c+cos(\x r)))});
+    \draw[intcol,thick,smooth,samples=60,domain=-\tm:\tm] plot (\x,{-sqrt(2*(\c+cos(\x r)))});
+  }
+  % separatrix E = 1 and two rotations E = 1.6
+  \draw[thmcol,thick,smooth,samples=80,domain=-pi:pi] plot (\x,{2*cos(\x/2 r)});
+  \draw[thmcol,thick,smooth,samples=80,domain=-pi:pi] plot (\x,{-2*cos(\x/2 r)});
+  \draw[defcol,thick,smooth,samples=80,domain=-pi:pi] plot (\x,{sqrt(2*(1.6+cos(\x r)))});
+  \draw[defcol,thick,smooth,samples=80,domain=-pi:pi] plot (\x,{-sqrt(2*(1.6+cos(\x r)))});
+  % axes and fixed points
+  \draw[->] (-3.4,0) -- (3.6,0) node[right] {$\theta$};
+  \draw[->] (0,-2.9) -- (0,3.1) node[above] {$\dot\theta$};
+  \foreach \t/\l in {-pi/{-\pi},pi/{\pi}} \draw (\t,0.08) -- (\t,-0.08) node[below] {$\l$};
+  \fill[intcol] (0,0) circle (2pt);
+  \fill[thmcol] (-pi,0) circle (2pt) (pi,0) circle (2pt);
+\end{tikzpicture}
+\caption{State space of the pendulum $\dot\theta=\omega$, $\dot\omega=-\sin\theta$ ($g/L=1$). Grey: the
+vector field $\vb f$ (arrows of equal length, only the direction is shown). Green: oscillations
+around the stable equilibrium; red: the separatrix through the unstable (upright) equilibria; blue:
+rotations, the pendulum goes over the top. Each curve is a level set of the energy
+$E=\tfrac12\omega^2-\cos\theta$.}\label{fig:ov-pendulum}
+\end{nfigure}
+
+\paragraph{Time.} The explicit dependence on $t$ matters, because in many systems the rules themselves
+change in time \ts{1}{2}{3:33}. The equations that describe your brain while you watch a lecture are
+different from those that describe it while you sleep; the weather and the climate change; we may be
+actively changing the dynamics of a system, as with the ocean \ts{1}{2}{3:53}.
+
+\paragraph{Control versus parameters.} Both $\vb u$ and $\boldsymbol\beta$ are ``inputs'' of $\vb f$,
+but they play opposite roles. The control $\vb u$ is what we act on, possibly in real time; the
+parameters $\boldsymbol\beta$ are given by the situation. For an aircraft, $\boldsymbol\beta$ would
+contain wind speed, humidity, altitude and weight, and $\vb u$ the deflection of the flaps and of the
+elevators \ts{1}{1}{3:28}. We want to understand the explicit dependence of $\vb f$ on
+$\boldsymbol\beta$, because a small change of a parameter can produce a large qualitative change in the
+dynamics, a \emph{bifurcation} (here it is only named; bifurcations are treated in Chapter~2) \ts{1}{2}{4:55}.
+
+\paragraph{Measurements.} We rarely have access to the full state \ts{1}{2}{5:15}. One cannot record
+every neuron of a brain; at best a small subset, or a crude proxy such as an EEG or an ECG
+\ts{1}{2}{5:36}. Hence the second equation in \eqref{eq:ov-general}. The data from which models are
+learned are samples of $\vb y$, $t$, $\vb u$ and possibly $\boldsymbol\beta$ \ts{1}{1}{4:29}.
+
+\begin{nfigure}
+\begin{tikzpicture}[>=Stealth,
+    blk/.style={draw=defcol,very thick,fill=defcol!7,rounded corners=2pt,minimum width=4.6cm,
+      minimum height=1.25cm,align=center},
+    lab/.style={font=\small,align=center}]
+  \node[blk] (sys) {$\dot{\vb x}=\vb f(\vb x,t,\vb u;\boldsymbol\beta)$\\[2pt]\small state $\vb x\in\R^n$, possibly $n\sim10^9$};
+  \node[blk,draw=intcol,fill=intcol!7,minimum width=2.6cm,right=1.2cm of sys] (meas) {$\vb y=\vb g(\vb x,t)$};
+  \draw[->,very thick] ([xshift=-1.4cm]sys.west) node[left,lab] {control $\vb u$\\(knobs\\we turn)} -- (sys.west);
+  \draw[->,very thick] ([yshift=1.2cm]sys.north) -- node[right,lab] {parameters $\boldsymbol\beta$ (given; bifurcations)} (sys.north);
+  \draw[->,very thick] (sys.east) -- node[above,lab] {$\vb x(t)$} (meas.west);
+  \draw[->,very thick] (meas.east) -- ++(1.0,0) node[right,lab] {data\\(few,\\noisy)};
+  \draw[->,thick,dashed,srccol] ([yshift=-0.9cm]sys.south) -- node[right,lab,text=srccol] {disturbances, noise} (sys.south);
+\end{tikzpicture}
+\caption{The anatomy of a dynamical system as a block diagram, the way control engineers draw it
+(Chapter~8 of the book). The machine-learning tasks of the course attack one block at a time: learn
+$\vb f$, reconstruct $\vb x$ from $\vb y$, choose $\vb u$, study the dependence on
+$\boldsymbol\beta$.}\label{fig:ov-anatomy}
+\end{nfigure}
+
+\begin{secondary}[Precise setting: manifolds, existence and uniqueness]
+In the book the autonomous system $\dot{\vb x}=\vb f(\vb x)$ is formulated more generally: the state
+lives on a smooth $n$-dimensional manifold $M$ and $\vb f$ is a vector field, a section of the tangent
+bundle $TM$, so that $\vb f(\vb x)\in T_{\vb x}M$. Example: the pendulum angle is defined modulo
+$2\pi$, so the true state space is the cylinder $S^1\times\R$, and \cref{fig:ov-pendulum} should be
+rolled up so that $\theta=-\pi$ and $\theta=\pi$ coincide. In practice one takes $M=\R^n$ and asks
+$\vb f$ to be \emph{Lipschitz}, which guarantees existence and uniqueness of solutions.
+\begin{theorem}[Picard--Lindel\"of]\label{thm:ov-picard}
+Let $\vb f:\R\times\R^n\to\R^n$ be continuous in $t$ and Lipschitz in $\vb x$ on a neighbourhood of
+$(t_0,\vb x_0)$: $\lVert\vb f(t,\vb x)-\vb f(t,\vb x')\rVert\le L\lVert\vb x-\vb x'\rVert$. Then the
+problem $\dot{\vb x}=\vb f(t,\vb x)$, $\vb x(t_0)=\vb x_0$ has a unique solution on some interval
+$[t_0-\epsilon,t_0+\epsilon]$.
+\end{theorem}
+Uniqueness is what makes ``state'' a meaningful word: two trajectories cannot cross, so the present
+state determines the future. It fails for $\dot x=\sqrt{|x|}$ at $x=0$ (not Lipschitz): both $x(t)=0$
+and $x(t)=t^2/4$ start from $x(0)=0$.
+\end{secondary}
+
+% ------------------------------------------------------------------
+\section{From first principles to data}\label{sec:ov-data}
+
+\paragraph{The classical way.} Dynamical systems are not new: Newton's second law $F=ma$ is already a
+dynamical system, and it gives the trajectories of projectiles, the motion of a pendulum and of the
+planets \ts{1}{1}{4:50}. For centuries the method has been \emph{physics based}: write down Newton's
+law, the Lagrangian or the Hamiltonian, and derive the equations of motion from first principles
+\ts{1}{1}{5:11}\ts{1}{2}{6:17}. With these models we built satellites and went to the Moon
+\ts{1}{1}{6:53}.
+
+\begin{history}[Newton, Poincar\'e and the birth of dynamical systems]
+The book dates \emph{modern} dynamical systems to Henri Poincar\'e's work on the motion of planets.
+In 1889 Poincar\'e won the prize offered by King Oscar~II of Sweden for a memoir on the stability of
+the solar system (the three-body problem). While the memoir was being printed, queries from the editor
+Lars Phragm\'en led Poincar\'e to a serious error; correcting it, he discovered that the stable and unstable manifolds of a periodic
+orbit can intersect transversally (homoclinic tangle), the first glimpse of chaos. The printed copies
+were recalled and destroyed, and Poincar\'e paid for the reprinting, more than the 2500 crowns of the
+prize. The corrected memoir appeared in \emph{Acta Mathematica} in 1890 and grew into \emph{Les
+m\'ethodes nouvelles de la m\'ecanique c\'eleste} (1892--1899), where the qualitative, geometric
+study of ODEs begins.\par
+\textit{References:} J.~Barrow-Green, \emph{Poincar\'e and the Three Body Problem} (AMS, 1997);
+Brunton \& Kutz, Ch.~7 introduction.
+\end{history}
+
+\paragraph{Why it is no longer enough.} For the systems we most want to understand today, such as the
+brain, the climate, a financial market or the spread of a disease, there are no first-principles
+equations that are easy to write, simulate and control \ts{1}{1}{5:52}. ``There is no master equation
+for your brain'', and no agreed governing law for how a disease spreads or how the climate works
+\ts{1}{1}{6:13}\ts{1}{2}{6:57}. But there are more and more data: recordings of brain activity,
+for example, come in ever larger volumes \ts{1}{1}{6:13}. The next generation of problems, like
+controlling turbulence or understanding the brain, will not always be solvable with first-principles
+models, so the models will have to be derived from data \ts{1}{1}{7:14}. The field is in its infancy:
+knowing the physics still lets you do much more than data alone \ts{1}{1}{7:55}.
+
+\begin{remark}[All models are models]
+Even $F=ma$, the Navier--Stokes equations of fluids and the Schr\"odinger equation are not ``the
+truth'' but \emph{models} of reality, excellent ones \ts{1}{1}{6:33}. Seen this way, learning a model
+from data is not a different activity from physics but the same one, done with other tools. The book
+adds that, as systems become more complex, choosing the ``correct'' model becomes more subjective,
+which is a reason to want automatic, reproducible model discovery.
+\end{remark}
+
+\paragraph{Reduced-order models.} Data-driven models are useful even where the equations are known.
+The Navier--Stokes equations describe a fluid exactly but may be far too expensive to use; what one
+wants is a \emph{reduced-order model}, a dynamical system for a much smaller state that captures only
+what we care about in the flow \ts{1}{2}{7:18}.
+
+\begin{definition}[New concepts: data-driven and reduced-order models]\label{def:ov-models}
+Two ways of obtaining a model, and one kind of model:
+\begin{enumerate}[(a)]
+  \item A \textbf{first-principles} model is derived from accepted physical laws (Newton, Lagrange,
+        Hamilton, conservation laws); a \textbf{data-driven} model is obtained by fitting
+        (regression, optimization) to measurements of the system.
+  \item A \textbf{reduced-order model} (ROM) is a dynamical system $\dot{\vb a}=\tilde{\vb f}(\vb a)$
+        for a state $\vb a\in\R^r$ with $r\ll n$, built so that a known map $\vb a\mapsto\vb x$
+        reproduces the quantities of interest of the full system $\dot{\vb x}=\vb f(\vb x)$.
+\end{enumerate}
+\end{definition}
+
+% ------------------------------------------------------------------
+\section{Challenges of modern dynamical systems}\label{sec:ov-challenges}
+
+Brunton's list is explicitly personal: another dynamicist would give a different one, and this is his
+group's ``to-do list'' \ts{1}{1}{12:03}. The two primary challenges, those that data can help with most,
+are \ts{1}{1}{9:38}: nonlinearity and unknown dynamics.
+
+\paragraph{1. Nonlinearity.} If the system is linear, $\dot{\vb x}=A\vb x$, everything is known
+from the eigenvalues and eigenvectors of $A$ \ts{1}{1}{8:16}. Even a small nonlinearity, an $x^2$, an
+$x^3$ or a $\cos x$ on the right-hand side, makes it very hard to understand, predict, estimate and
+control the future \ts{1}{1}{8:57}. Superposition fails: the sum of two solutions is no longer a
+solution \ts{1}{2}{7:38}. For linear systems ``you could just write down the solution and go home,
+and we would all be out of business'': nonlinearity is ``job security'' \ts{1}{2}{7:59}. There are
+special classes of nonlinear systems and special solutions, but no general, one-size-fits-all theory
+\ts{1}{2}{8:19}. Why linear systems count as ``solved'' is worth seeing in detail.
+
+\begin{proposition}[Linear systems are solved by their eigenvectors]\label{prop:ov-linear}
+Let $\dot{\vb x}=A\vb x$ with $A\in\R^{n\times n}$ diagonalizable, $AT=T\Lambda$, where
+$\Lambda=\diag(\lambda_1,\dots,\lambda_n)$ and the columns $\boldsymbol\xi_j$ of $T$ are eigenvectors.
+Then
+\begin{enumerate}[(i)]
+  \item the solution is $\vb x(t)=e^{At}\vb x(0)=T e^{\Lambda t}T^{-1}\vb x(0)
+        =\sum_{j=1}^n b_j e^{\lambda_j t}\boldsymbol\xi_j$, with $\vb b=T^{-1}\vb x(0)$;
+  \item in the eigenvector coordinates $\vb z=T^{-1}\vb x$ the dynamics decouple: $\dot z_j=\lambda_j z_j$;
+  \item sampled at times $t_k=k\Delta t$, the system is the linear map $\vb x_{k+1}=e^{A\Delta t}\vb x_k$,
+        whose eigenvalues are $\mu_j=e^{\lambda_j\Delta t}$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+Substitute $\vb x=T\vb z$: $T\dot{\vb z}=AT\vb z=T\Lambda\vb z$, and multiplying by $T^{-1}$ gives
+$\dot{\vb z}=\Lambda\vb z$, i.e.\ (ii). Each scalar equation has solution $z_j(t)=e^{\lambda_jt}z_j(0)$,
+so $\vb z(t)=e^{\Lambda t}\vb z(0)$ and $\vb x(t)=Te^{\Lambda t}T^{-1}\vb x(0)$; writing $T e^{\Lambda t}\vb b$
+column by column gives the sum in (i). The power series of the exponential gives
+$e^{At}=\sum_k (T\Lambda T^{-1})^kt^k/k!=T(\sum_k\Lambda^kt^k/k!)T^{-1}=Te^{\Lambda t}T^{-1}$.
+For (iii), $\vb x_{k+1}=e^{A\Delta t}\vb x_k$ follows from (i) with initial time $t_k$, and
+$e^{A\Delta t}T=Te^{\Lambda\Delta t}$ shows that the eigenvectors are the same, with eigenvalues
+$e^{\lambda_j\Delta t}$.
+\end{proof}
+
+\begin{intuition}[Normal modes]
+\Cref{prop:ov-linear} is the normal-mode analysis of small oscillations in classical mechanics. Each
+eigenvector $\boldsymbol\xi_j$ is a spatial pattern that evolves on its own, growing or decaying at rate
+$\operatorname{Re}\lambda_j$ and oscillating at frequency $\operatorname{Im}\lambda_j$; any motion is
+a superposition of them. The whole course can be read as the search for such modes when $\vb f$ is
+nonlinear or unknown: DMD (Chapter~4) fits them to data, and Koopman theory (Chapter~6) looks for
+coordinates in which a nonlinear system has them.
+\end{intuition}
+
+\paragraph{2. Unknown dynamics.} Perhaps more fundamental: often $\vb f$ is simply not known
+\ts{1}{1}{9:18}. This challenge ``goes unmentioned in a lot of cases'' \ts{1}{2}{6:17}. For a pendulum
+you open a physics book and derive the equations; for the brain or a disease network we have models
+and approximations, but no agreed governing law, and $\vb f$ must be discovered from data
+\ts{1}{2}{6:37}\ts{1}{2}{6:57}. Even when $\vb f$ is known it may be unusable in practice, as with the
+Navier--Stokes equations, and one needs a reduced model \ts{1}{2}{7:18}.
+
+\paragraph{Other challenges.} Important, but secondary to the first two \ts{1}{1}{9:58}:
+\begin{itemize}
+  \item \textbf{High dimension.} The state may have millions or billions of components. To simulate
+        the climate one chops the Earth into maybe a million to a billion grid cells, at a resolution
+        of a kilometre or less \ts{1}{1}{10:20}; a brain has about a hundred billion neurons, so a
+        hundred-billion-dimensional state just to say which neurons are active \ts{1}{2}{8:40}; a
+        realistic epidemic model needs the network of contacts of billions of people
+        \ts{1}{2}{9:00}.
+  \item \textbf{Multiscale dynamics.} Coherent structures at many scales of space and time
+        \ts{1}{1}{11:21}. In a turbulent fluid you can zoom in, and in, and still find structure
+        \ts{1}{1}{11:42}. For the weather, Earth-scale seasonal patterns and hurricanes matter, but so
+        do tiny features, for a forecast three weeks out \ts{1}{2}{9:41}. The brain is multiscale in
+        space (regions made of neurons) and in time: you hear words over seconds, connect them to what
+        was said minutes ago, against a lifetime of experience \ts{1}{2}{10:02}.
+  \item \textbf{Chaos and transients.} Not all nonlinear systems are chaotic, but many are: the
+        future depends sensitively on small changes of the initial condition, of the parameters and of
+        the dynamics \ts{1}{2}{10:22}. This is why the weather cannot be predicted three weeks ahead:
+        the system is chaotic and we can measure it, and know its equations and parameters, only so
+        accurately \ts{1}{2}{11:02}.
+  \item \textbf{Latent (hidden) variables.} With a big state, we are surely not measuring everything:
+        a few neurons, or a proxy. The unmeasured variables may matter a lot \ts{1}{2}{11:23}.
+  \item \textbf{Noise and stochasticity.} Real systems are forced by disturbances and measured with
+        noise \ts{1}{1}{11:01}\ts{1}{2}{11:45}. And the noise is not the Gaussian white noise of
+        textbooks (``the only thing we can actually solve'') but correlated, structured and biased
+        \ts{1}{2}{11:45}.
+  \item \textbf{Uncertainty} in everything: the initial condition, the parameters, the model $\vb f$
+        itself, what is measured and how, even \emph{when} a measurement was taken; it must be handled
+        and propagated \ts{1}{1}{12:03}\ts{1}{2}{12:05}.
+\end{itemize}
+The systems of interest, such as neuroscience, turbulence, financial markets and disease, have all of
+these at once: high-dimensional, multiscale, nonlinear, with unknown $\vb f$ \ts{1}{1}{12:24}.
+
+\begin{nfigure}
+\begin{tikzpicture}[>=Stealth,
+    main/.style={draw=thmcol,very thick,fill=thmcol!8,rounded corners=2pt,minimum width=3.2cm,
+      minimum height=0.9cm,align=center,font=\small\bfseries},
+    sec/.style={draw=srccol,fill=srccol!8,rounded corners=2pt,minimum width=1.95cm,minimum height=0.85cm,
+      align=center,font=\footnotesize},
+    use/.style={draw=intcol,thick,fill=intcol!8,rounded corners=2pt,minimum width=3.0cm,
+      minimum height=0.75cm,align=center,font=\footnotesize}]
+  \node[main] (nl) at (-2.2,0) {nonlinearity};
+  \node[main] (unk) at (2.2,0) {unknown $\vb f$};
+  \node[draw,very thick,keycol,circle,minimum size=1.4cm,align=center,font=\footnotesize\bfseries,text=black]
+    (opt) at (0,-1.7) {optim-\\ization};
+  \node[sec] (ms) at (-4.4,-3.4) {multiscale};
+  \node[sec] (dim) at (-2.2,-3.4) {high\\dimension};
+  \node[sec] (ch) at (0,-3.4) {chaos,\\transients};
+  \node[sec] (lat) at (2.2,-3.4) {latent\\variables};
+  \node[sec] (noise) at (4.4,-3.4) {noise,\\uncertainty};
+  \foreach \n in {nl,unk,ms,dim,ch,lat,noise} \draw[->,srccol] (\n) -- (opt);
+  \node[use] (u1) at (7.6,0.2) {prediction\\(ensembles)};
+  \node[use,below=0.3cm of u1] (u2) {design and\\optimization};
+  \node[use,below=0.3cm of u2] (u3) {estimation and\\control};
+  \node[use,below=0.3cm of u3] (u4) {interpretability,\\generalizability};
+  \draw[->,very thick,keycol] (opt.east) to[out=0,in=180] node[below,font=\footnotesize,text=black,pos=0.4] {models} (u3.west);
+  \node[font=\small\itshape] at (0,0.85) {challenges};
+  \node[above=0.1cm of u1,font=\small\itshape] {uses};
+\end{tikzpicture}
+\caption{Map of the chapter. The two primary challenges (red) and the secondary ones (grey) can all be
+recast as optimization problems, which is where machine learning enters \ts{1}{2}{12:47}; the
+resulting models serve the four uses (green).}\label{fig:ov-map}
+\end{nfigure}
+
+\paragraph{Challenges as optimization problems.} Most of these challenges can be recast as
+\emph{optimization} problems \ts{1}{2}{12:47}: handle noise and disturbances optimally in a prediction
+or estimate, propagate uncertainty optimally, reconstruct the full state optimally from the limited
+measurements $\vb y$. And machine learning is, at bottom, ``optimization based on data'': building
+models by optimization over a wealth of data \ts{1}{2}{13:07}. So the anatomy of
+\cref{def:ov-anatomy} lets one pick a single task and attack it with these tools \ts{1}{2}{13:28}.
+Every challenge on the list is not one problem but whole careers of work \ts{1}{2}{14:29}.
+
+\begin{example}[State reconstruction as optimization]
+Given measurements $\vb y=C\vb x+\boldsymbol\eta$ with $C\in\R^{p\times n}$, $p\ll n$, the state cannot be
+obtained by inverting $C$. One instead solves an optimization problem: least squares with a prior
+(the Kalman filter, Chapter~8 of the book), or least squares in a basis where $\vb x$ is sparse
+(compressed sensing, Chapter~4 of these notes).
+\end{example}
+
+% ------------------------------------------------------------------
+\section{What models are for}\label{sec:ov-uses}
+
+Again a personal, not definitive, list \ts{1}{1}{13:06}.
+
+\paragraph{1. Future state prediction.} The most obvious use \ts{1}{1}{13:06}\ts{1}{2}{13:48}:
+forecast the weather a week ahead, or, if someone is lost at sea, integrate from a rough initial
+position where they will be two hours later. Prediction need not be of a single trajectory: it can be
+statistical, an \emph{ensemble} of initial conditions propagated together to give a probability
+density of the future state \ts{1}{1}{13:26}\ts{1}{2}{14:09}. For the climate we care not about one
+trajectory but about the probability of evolving towards higher or lower temperatures
+\ts{1}{1}{13:47}; for the Gulf oil spill, the source is known only up to a Gaussian, which must be
+propagated into a forecast of where the oil will be \ts{1}{2}{14:09}.
+
+\paragraph{2. Design and optimization.} With a model, tune the parameters $\boldsymbol\beta$ to get
+a desired performance \ts{1}{1}{14:09}\ts{1}{2}{14:51}. Formula One cars, America's Cup yachts and
+rocket engines are complex multiphysics systems dominated by turbulent fluid dynamics; the dynamics
+change a lot with rain, humidity or the shape of an aerodynamic scoop, and so does the drag. Much
+effort goes into reduced-order models of these systems, cheap enough to optimize the design rapidly
+\ts{1}{1}{14:29}\ts{1}{1}{14:51}. This requires understanding how the system depends on its parameters
+\ts{1}{2}{15:11}.
+
+\paragraph{3. Control.} Different from design: here we measure the system in real time and, with a
+model, compute an actuation signal that modifies its behaviour through sensor-based
+\emph{feedback} \ts{1}{1}{15:11}. If design optimization is done in real time from measurements,
+the parameters become actuators and design becomes feedback control \ts{1}{2}{15:11}. Examples:
+suppressing epileptic seizures, suppressing a disease as it spreads through a continent, increasing the
+power extracted by a turbine from a flow \ts{1}{1}{15:32}.
+
+\paragraph{4. Interpretability and physical intuition.} Often missing from such lists, but for
+Brunton maybe the most important \ts{1}{1}{15:52}. Many machine-learning methods are hard to interpret
+and give no intuition; Brunton argues for tailoring them so that the models they produce are
+interpretable and teach us more physics than we knew \ts{1}{1}{16:15}. Besides manipulating and
+predicting the world, we want to understand how and why it works \ts{1}{2}{15:53}. Two key words
+\ts{1}{2}{16:13}:
+\begin{itemize}
+  \item \textbf{interpretable}: the model is simple enough that we can communicate and reason about it;
+  \item \textbf{generalizable}: the model works in situations it was not built for, for instance at
+        parameter values never tested \ts{1}{2}{16:33}.
+\end{itemize}
+Newton's second law is the ultimate interpretable and generalizable model: so simple that anyone can
+understand it, valid in a vast range of situations, and it changed how we understand and interact with
+the world \ts{1}{2}{16:33}\ts{1}{2}{16:54}.
+
+\begin{intuition}[Interpretable = few terms]
+For a physicist, ``interpretable'' has a concrete meaning that will come back in SINDy (Chapter~5): a
+model with few terms, each one recognizable (a damping, a quadratic coupling, a restoring force). A
+neural network with $10^6$ weights may predict well, but it does not tell you that $\vb f$ contains
+$-\sin\theta$. Generalization is the reward for parsimony: a law with few terms extrapolates, a
+curve fitted with many terms does not (overfitting).
+\end{intuition}
+
+% ------------------------------------------------------------------
+\section{Techniques and the plan of the course}\label{sec:ov-techniques}
+
+\paragraph{Methods.} An incomplete list of the techniques that work \ts{1}{1}{16:57}:
+\begin{itemize}
+  \item \textbf{regression}, linear and \emph{sparse}, probably the foremost one \ts{1}{1}{17:17};
+  \item \textbf{neural networks} and deep learning, very powerful at learning dynamics, but with
+        interpretability problems; the course shows how to constrain them so that they are interpretable
+        by construction \ts{1}{1}{17:39};
+  \item \textbf{genetic algorithms} and \textbf{genetic programming}, used effectively to discover
+        dynamical systems from data \ts{1}{1}{17:39}.
+\end{itemize}
+
+\begin{definition}[New concepts: sparse regression, genetic programming]
+Two ways of finding a model with few terms:
+\begin{enumerate}[(a)]
+  \item \textbf{Sparse regression} fits $\vb y\approx\Theta\boldsymbol\xi$ while asking that most
+        entries of the coefficient vector $\boldsymbol\xi$ vanish (by an $\ell_1$ penalty or by
+        thresholding), so that only a few columns of $\Theta$, the few ``terms'' of the model,
+        survive. \emph{Sparse}, from the Latin \emph{sparsus}, ``scattered'': few non-zero entries
+        scattered in a sea of zeros.
+  \item \textbf{Genetic programming} searches over formulas (expression trees) by mimicking evolution:
+        a population of candidate equations is mutated and recombined, and the ones that fit the data
+        best with the fewest terms survive.
+\end{enumerate}
+\end{definition}
+
+\begin{aside}[Symbolic regression by evolution]
+The best-known example is the work of M.~Schmidt and H.~Lipson, \emph{Distilling free-form natural
+laws from experimental data}, Science 324 (2009), who recovered Hamiltonians and Lagrangians of
+double pendulums and oscillators from motion-tracking data with genetic programming (ref.~[477] of
+the book's Chapter~7, together with Bongard and Lipson 2007, ref.~[68]).
+\end{aside}
+
+\paragraph{Coping with nonlinearity: Koopman.} A preview of a large part of the course
+\ts{1}{1}{18:21}. Koopman analysis looks for a nonlinear change of coordinates $\boldsymbol\varphi(\vb x)$
+such that, in the new coordinates, the dynamics is linear,
+\[
+  \frac{\mathrm d}{\mathrm dt}\boldsymbol\varphi(\vb x) = K\,\boldsymbol\varphi(\vb x),
+\]
+so that the whole linear toolbox of \cref{prop:ov-linear} applies. Finding coordinates that make a
+system simpler is an old goal of physics; what is new is using deep learning or sparse regression to
+find them from data \ts{1}{1}{18:41}\ts{1}{1}{19:02}. The other half of the course is to discover $\vb f$
+itself by regression \ts{1}{1}{19:02}. The methods to come: dynamic mode decomposition, Koopman
+analysis, delay coordinates, neural networks \ts{1}{1}{19:23}.
+
+\begin{example}[A nonlinear system made linear]
+$\dot x=x^2$ is nonlinear. With $\varphi(x)=1/x$ (for $x\neq0$), $\dot\varphi=-\dot x/x^2=-1$: in
+the coordinate $\varphi$ the motion is uniform, $\varphi(t)=\varphi(0)-t$, so
+$x(t)=x_0/(1-x_0t)$, with the blow-up at $t=1/x_0$ in plain view. Chapter~7 shows that such
+finite linear representations exist only in special cases.
+\end{example}
+
+\paragraph{Put the physics in.} The final message \ts{1}{1}{19:43}. Most of machine learning was
+developed for \emph{static} tasks, like image classification or scene labelling. Dynamical systems
+instead have physics: constraints, conservation of energy and mass, $F=ma$
+\ts{1}{1}{20:03}. Even where the exact equations are unknown, as for a reduced model of a turbulent
+fluid, the brain or an epidemic, there are surely constraints, symmetries and invariants
+\ts{1}{1}{20:03}\ts{1}{1}{20:25}. Building them into the learning procedure pays twice: the models are
+more interpretable, and they can be learned with less data \ts{1}{1}{20:45}\ts{1}{1}{21:06}.
+
+\begin{intuition}[Symmetries as priors]
+Enforcing a conservation law shrinks the space of candidate models. If energy is conserved, $\vb f$
+must satisfy $\nabla E\cdot\vb f=0$: a linear constraint on the coefficients of a regression, which
+removes whole directions of the search space. Fewer free parameters, less data needed: this is the
+statistical face of Noether's theorem.
+\end{intuition}
+
+\paragraph{Homework from the lecture.} Brunton closes with an invitation \ts{1}{2}{17:15}: pick a system
+you care about (the brain, an epidemic, the climate) and ask what its state vector is, what its
+controls and parameters are, what rules might govern its evolution, what can be measured, and where it
+sits among the challenges and the uses \ts{1}{2}{17:35}. The first exercise below does exactly this.
+
+\begin{keyformulas}
+\begin{itemize}
+  \item Anatomy: $\dot{\vb x}=\vb f(\vb x,t,\vb u;\boldsymbol\beta)$, $\vb y=\vb g(\vb x,t)$; state,
+        dynamics (vector field), time, control, parameters, measurements.
+  \item Linear systems: $\vb x(t)=Te^{\Lambda t}T^{-1}\vb x(0)=\sum_j b_je^{\lambda_jt}\boldsymbol\xi_j$;
+        decoupled in $\vb z=T^{-1}\vb x$; discrete-time eigenvalues $\mu_j=e^{\lambda_j\Delta t}$.
+  \item Primary challenges: nonlinearity, unknown $\vb f$. Secondary: dimension, multiscale, chaos,
+        latent variables, noise, uncertainty. All recast as optimization.
+  \item Uses: prediction (also of ensembles), design, control, interpretability and generalizability.
+  \item Koopman program: find $\boldsymbol\varphi(\vb x)$ with $\tfrac{\mathrm d}{\mathrm dt}\boldsymbol\varphi=K\boldsymbol\varphi$.
+\end{itemize}
+\end{keyformulas}
+
+% ------------------------------------------------------------------
+\section*{Exercises}
+
+\begin{exercise}[Anatomy of a system of your choice]\label{ex:ov-anatomy}
+Choose a system: (a) an SIR epidemic in a city; (b) a wind turbine in a turbulent wind; (c) the
+temperature of a room heated by a thermostat. For each one:
+\begin{enumerate}[(i)]
+  \item define a state $\vb x$ and estimate its dimension;
+  \item list the controls $\vb u$ and the parameters $\boldsymbol\beta$, and say which parameters
+        could become controls;
+  \item say what can realistically be measured, $\vb y=\vb g(\vb x,t)$;
+  \item say which challenges of \cref{sec:ov-challenges} apply, and which use of
+        \cref{sec:ov-uses} you would care most about.
+\end{enumerate}
+\end{exercise}
+
+\begin{exercise}[Non-autonomous to autonomous]
+Show that $\dot{\vb x}=\vb f(\vb x,t)$, $\vb x\in\R^n$, can be written as an autonomous system in
+$\R^{n+1}$. Apply this to the forced oscillator $\ddot x+\gamma\dot x+\omega_0^2x=F\cos\Omega t$, and
+then show that, because the forcing is periodic, the extra coordinate can be taken on a circle
+$S^1$ instead of $\R$. What is the dimension of the state space of the forced pendulum?
+\end{exercise}
+
+\begin{exercise}[Eigenvalues of the damped oscillator]
+Write $\ddot x+2\zeta\omega_0\dot x+\omega_0^2x=0$ as $\dot{\vb x}=A\vb x$.
+\begin{enumerate}[(a)]
+  \item Compute the eigenvalues of $A$ and classify the motion for $0<\zeta<1$, $\zeta=1$, $\zeta>1$.
+  \item For $\zeta=1$ the matrix is not diagonalizable: compute $e^{At}$ anyway (Jordan form) and
+        find the $te^{-\omega_0t}$ term.
+  \item Sample the underdamped solution with step $\Delta t$: give the eigenvalues $\mu_\pm$ of the
+        discrete-time map and show that $|\mu_\pm|<1$. Where do they lie in the complex plane as
+        $\Delta t$ grows?
+\end{enumerate}
+\end{exercise}
+
+\begin{exercise}[How big is the weather?]
+Estimate the dimension $n$ of the state of a global weather model with a horizontal resolution of
+$1\,$km, $100$ vertical levels and $6$ variables per cell (three velocity components, temperature,
+pressure, humidity); the Earth's surface is about $5.1\times10^8\,\mathrm{km}^2$. How many bytes does
+one snapshot take in double precision? How many snapshots of this size fit in a petabyte?
+\end{exercise}
+
+\begin{exercise}[Superposition]
+Show that the set of solutions of $\dot{\vb x}=A\vb x$ is a vector space. Then show, with an explicit
+counterexample, that for $\dot x=-x+x^2$ the sum of two solutions is not a solution. Solve this
+equation exactly (separation of variables or the substitution $\varphi=1/x$) and discuss which initial
+conditions blow up in finite time.
+\end{exercise}
+
+\begin{exercise}[Energy constraint as a linear constraint]
+Suppose you look for a model of a one-degree-of-freedom conservative system, $\dot q=p$,
+$\dot p=\sum_{k=0}^{3}\xi_kq^k$, as a linear combination of monomials. Show that energy conservation is
+automatic for any $\boldsymbol\xi$, and write the energy. Now allow also $\dot p$ to contain a term
+$\xi_4p$: which value of $\xi_4$ does energy conservation impose? Relate this to the last intuition box
+of \cref{sec:ov-techniques}.
+\end{exercise}
+
+\end{paracol}

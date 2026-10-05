@@ -1,0 +1,16 @@
+url: 
+https://www.youtube.com/playlist?list=PLMrJAkhIeNNR6DzT17-MM1GHLkuYVjhyt
+
+Description
+
+Modeling complex systems from data is an age old pursuit.  Machine learning is rapidly improving our ability to build dynamical systems models from data.  This lecture series will cover many leading modern methods.  
+
+This lecture series will go into depth on data-driven control, following Chapter 7 from:
+"Data-Driven Science and Engineering: Machine Learning, Dynamical Systems, and Control"  by Brunton and Kutz
+
+Amazon: https://www.amazon.com/Data-Driven-Science-Engineering-Learning-Dynamical/dp/1108422098/
+
+Book Website: http://databookuw.com 
+Chapters available at: http://databookuw.com/databook.pdf
+
+Brunton Website: http://eigensteve.com

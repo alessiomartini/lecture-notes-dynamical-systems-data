@@ -1,0 +1,25 @@
+index,chapter,video,chapter_title,video_title,id,duration
+1,1,1,Overview and anatomy of a dynamical system,Data-Driven Dynamical Systems Overview,Kap3TZwAsv0,1303
+2,1,2,Overview and anatomy of a dynamical system,The Anatomy of a Dynamical System,-FvrON0OmYc,1073
+24,2,1,"Fundamentals: fixed points, linearization, invariant manifolds, bifurcations, chaos","Topics in Dynamical Systems: Fixed Points, Linearization, Invariant Manifolds, Bifurcations & Chaos",0H1gWTaWva4,1931
+3,3,1,Simulating continuous and discrete dynamics,Simulating the Lorenz System in Matlab,EnsB1wP3LFM,909
+4,3,2,Simulating continuous and discrete dynamics,Discrete-Time Dynamical Systems,0dvF2jesB4E,586
+5,3,3,Simulating continuous and discrete dynamics,Simulating the Logistic Map in Matlab,_BvAkyuWhOI,989
+6,4,1,Dynamic mode decomposition,Dynamic Mode Decomposition (Overview),sQvrK8AGCAo,1098
+7,4,2,Dynamic mode decomposition,Dynamic Mode Decomposition (Examples),wheHQAhJWco,463
+8,4,3,Dynamic mode decomposition,Dynamic Mode Decomposition (Code),kVbEHH_laNU,495
+9,4,4,Dynamic mode decomposition,Compressed Sensing and Dynamic Mode Decomposition,4tLSq_PEFms,1835
+10,5,1,Sparse identification of nonlinear dynamics,Sparse Identification of Nonlinear Dynamics (SINDy),gSCa78TIldg,1604
+11,5,2,Sparse identification of nonlinear dynamics,PDE FIND,oI3grKBxkqM,636
+12,6,1,Koopman spectral analysis,Koopman Spectral Analysis (Overview),J7s0XNT96ag,1669
+13,6,2,Koopman spectral analysis,Koopman Spectral Analysis (Representations),--J7F6khJD0,961
+14,6,3,Koopman spectral analysis,Koopman Spectral Analysis (Control),dx2f4exDZnU,926
+15,6,4,Koopman spectral analysis,Koopman Spectral Analysis (Continuous Spectrum),JJaxltAN9Ug,763
+16,6,5,Koopman spectral analysis,Koopman Spectral Analysis (Multiscale systems),J1MIaTdOL5A,308
+17,7,1,Koopman observable subspaces and control,Koopman Observable Subspaces & Finite Linear Representations of Nonlinear Dynamics for Control,K5CRbC4yqnk,1891
+19,7,2,Koopman observable subspaces and control,Koopman Observable Subspaces & Nonlinearization,pnGsQAt0od4,278
+20,7,3,Koopman observable subspaces and control,Koopman Operator Optimal Control,qOdwRel-1xA,618
+18,8,1,Hankel alternative view of Koopman (HAVOK),Hankel Alternative View of Koopman (HAVOK) Analysis [FULL],831Ell3QNck,2827
+21,8,2,Hankel alternative view of Koopman (HAVOK),Hankel Alternative View of Koopman (HAVOK) Analysis [SHORT],Q8VzAtGGlDQ,1361
+22,8,3,Hankel alternative view of Koopman (HAVOK),Magnetic field reversal and Measles outbreaks: HAVOK models of chaos,73xfX0dGdrY,579
+23,8,4,Hankel alternative view of Koopman (HAVOK),Linear model for chaotic Lorenz system [HAVOK],XHsYx1kpTXg,327

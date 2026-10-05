@@ -1,0 +1,104 @@
+\documentclass[11pt,oneside,openany]{book}
+\input{preamble}
+
+% Compile only some chapters while working on them, e.g.:
+% \includeonly{chapters/ch01-overview}
+
+\begin{document}
+
+\frontmatter
+\begin{titlepage}
+  \centering
+  \vspace*{3cm}
+  {\Huge\bfseries Data-Driven Dynamical Systems\par}
+  \vspace{0.4cm}
+  {\LARGE Dynamical systems with machine learning\par}
+  \vspace{1cm}
+  {\Large Lecture notes\par}
+  \vspace{0.5cm}
+  {\large based on the video lectures by Steven L.~Brunton\\(University of Washington), with one
+  lecture by J.~Nathan Kutz\par}
+  \vspace{2cm}
+  {\large Personal study notes of Alessio Martini\par}
+  \vfill
+  \begin{minipage}{0.85\textwidth}\small
+    These notes are a personal, non-commercial study aid derived from the YouTube playlist
+    \emph{Dynamical Systems (with Machine Learning)} by Steve Brunton, which accompanies the book
+    by S.~L.~Brunton and J.~N.~Kutz, \emph{Data-Driven Science and Engineering: Machine Learning,
+    Dynamical Systems, and Control} (Cambridge University Press; chapters at
+    \url{http://databookuw.com}). Lecture content is paraphrased and re-derived from the (automatic)
+    transcripts of the videos, not transcribed; the Matlab demonstrations are rewritten in Python.
+    Any mistakes are mine. All rights on the original lectures and book belong to their authors.
+  \end{minipage}
+  \vspace{1cm}
+\end{titlepage}
+
+\chapter*{How to use these notes}
+\addcontentsline{toc}{chapter}{How to use these notes}
+\begin{paracol}{2}
+
+The playlist has 24 videos, recorded over several years, that are not numbered as lectures. These
+notes group them by topic: each chapter collects the videos on one subject, and its sections follow
+the videos. Every chapter opens with a \textbf{Sources} box listing the videos (each one a link) and the
+matching sections of the book by Brunton and Kutz. The order is the order of the playlist, with one
+exception: the long review \emph{Topics in Dynamical Systems}, the last video of the playlist, is
+Chapter~2, because it is the background for everything else.
+Part~I reviews dynamical systems and how to simulate them; Part~II covers the two families of
+regression methods that learn models from data (DMD and SINDy); Part~III is the operator-theoretic
+view (Koopman, HAVOK) that ties them together.
+
+\paragraph{Boxes.}
+\begin{itemize}
+  \item \textcolor{defcol}{\textbf{Definitions}} (blue), \textcolor{thmcol}{\textbf{theorems and propositions}} (red),
+        \textcolor{exercol}{\textbf{exercises}} and \textcolor{srccol}{\textbf{remarks}} are marked with a
+        coloured bar on the left. A definition box titled \emph{New concepts} marks the first time a concept appears.
+  \item \textcolor{keycol}{\textbf{Key formulas}} boxes collect what to remember.
+  \item \textcolor{intucol}{\textbf{Intuition}} boxes give the reading of a method in a physicist's language.
+  \item \textcolor{fincol}{\textbf{Application}} boxes say where a method is used in science and engineering.
+  \item \textcolor{cscol}{\textbf{Case study}} boxes follow a data set through a lecture (Lorenz, the
+        cylinder wake, measles, \dots).
+  \item \textcolor{srccol}{\textbf{Python}} boxes rewrite the Matlab demonstrations of the lectures in
+        Python (\texttt{numpy}, \texttt{scipy}); every listing has been run.
+  \item \textcolor{srccol}{\textbf{Reading}} boxes point to the book.
+  \item \textbf{Beyond the core} blocks (grey bar on the left, smaller type) hold material that can be
+        skipped on a first reading.
+\end{itemize}
+
+\paragraph{The right column.} The page is laid out for a screen: the text is always on the left and a
+column on the right holds \textcolor{intcol}{\textbf{examples}}, \textcolor{srccol}{\textbf{course notes}},
+\textcolor{histcol}{\textbf{history}} boxes and \textcolor{histcol}{\textbf{asides}} (curiosities), your
+\textcolor{notecol!80!black}{\textbf{notes}} with their \textcolor{anscol}{\textbf{answers}}, and
+\textcolor{exercol}{\textbf{feedback}} on your solutions.
+
+\paragraph{Video timestamps.} A tag such as \ts{1}{2}{3:10}\ means: chapter~1, video~2 of that
+chapter, at minute 3:10 of the video. Every tag is a link to the video at that second.
+
+\paragraph{Your annotations.} While reading, write directly in the chapter files. The macro
+\verb|\note{...}| prints a comment in the right column next to the text where it is written: a doubt,
+an idea, a reminder. When a doubt is answered, the note and its answer become one box in the right
+column. Requests about the notes themselves are collected in the chapter \emph{Requests about these
+notes}, which also lists how read and unread notes are marked.
+
+\flushside
+\end{paracol}
+
+\include{chapters/ch00-requests}
+
+\tableofcontents
+
+\mainmatter
+\part{Dynamical systems}\label{part:basics}
+\include{chapters/ch01-overview}
+% \include{chapters/ch02-fundamentals}
+% \include{chapters/ch03-simulation}
+
+% \part{Learning models from data: regression}\label{part:regression}
+% \include{chapters/ch04-dmd}
+% \include{chapters/ch05-sindy}
+
+% \part{The Koopman operator}\label{part:koopman}
+% \include{chapters/ch06-koopman}
+% \include{chapters/ch07-koopman-control}
+% \include{chapters/ch08-havok}
+
+\end{document}

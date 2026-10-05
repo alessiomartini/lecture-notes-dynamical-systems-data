@@ -1,0 +1,344 @@
+% ============================================================
+%  Preamble -- Data-Driven Dynamical Systems (S. L. Brunton)
+% ============================================================
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsthm,mathtools}
+\usepackage{newpxtext,newpxmath} % provides the AMS symbols: do not load amssymb
+\usepackage{bm}
+\usepackage{microtype}
+% Screen layout (read on a laptop, not printed): two parallel columns (paracol), the text column
+% with the width it had on A4 (15 cm) and a 6.5 cm right column for notes, answers, feedback,
+% examples, proofs, course notes, history and asides. Every right-column item starts level with the
+% paragraph it belongs to; if the right column is still busy, the text waits (white space).
+% The old A4 print layout was: a4paper,inner=2.4cm,outer=3.6cm,marginparwidth=3.0cm,marginparsep=0.3cm (twoside).
+\usepackage[paperwidth=25cm,paperheight=29.7cm,top=2.6cm,bottom=2.6cm,left=2cm,textwidth=22cm,
+  marginparsep=0.5cm,marginparwidth=6.5cm,headheight=23pt]{geometry}
+\usepackage{paracol}
+\setcolumnwidth{15cm/0.5cm,6.5cm}
+% counters shared by the two columns (equations in a proof, examples, answers ... in the right column)
+% (sectioning counters cannot be global with this kernel: they are copied to the right column by
+% \synccounter before each switch, see \side@emit)
+\globalcounter{equation}\globalcounter{footnote}\globalcounter{figure}
+\usepackage{booktabs,array,tabularx,longtable}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[shortlabels,inline]{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,decorations.pathreplacing,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,linkcolor=NavyBlue,urlcolor=NavyBlue,citecolor=NavyBlue]{hyperref}
+\usepackage[nameinlink]{cleveref}
+\usepackage{listings}
+
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\parskip}{3pt}
+\setlength{\emergencystretch}{2em}
+\hfuzz=5pt
+
+% ---------- headers ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\leftmark}
+\fancyhead[R]{\small\makebox[\marginparwidth][r]{\rightmark\quad\thepage}}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- colours (bright on purpose: yellow notes, blue definitions, red theorems, green examples) ----------
+\definecolor{defcol}{HTML}{1565C0}  % blue: definitions
+\definecolor{thmcol}{HTML}{D32F2F}  % red: theorems, propositions, lemmas, corollaries
+\definecolor{intcol}{HTML}{2E7D32}  % green: examples (also the green of the figures)
+\definecolor{notecol}{HTML}{FBC02D} % yellow: margin notes and their answers
+\definecolor{intucol}{HTML}{8E24AA} % purple: intuition
+\definecolor{fincol}{HTML}{EF6C00}  % orange: applications
+\definecolor{cscol}{HTML}{00897B}   % teal: case studies
+\definecolor{keycol}{HTML}{C2185B}  % magenta: key formulas
+\definecolor{exercol}{HTML}{3949AB} % indigo: exercises
+\definecolor{srccol}{HTML}{546E7A}  % grey-blue: sources, course notes, remarks
+\definecolor{histcol}{HTML}{B8860B} % bronze: history boxes (classical columns)
+\definecolor{doubtcol}{HTML}{C62828}
+\definecolor{ideacol}{HTML}{1565C0}
+\definecolor{okcol}{HTML}{388E3C}
+\colorlet{anscol}{notecol!85!black}
+
+% ---------- table rows: a little air between lines in every table ----------
+\AddToHook{env/tabular/begin}{\renewcommand{\arraystretch}{1.35}}
+\AddToHook{env/tabularx/begin}{\renewcommand{\arraystretch}{1.35}}
+\AddToHook{env/longtable/begin}{\renewcommand{\arraystretch}{1.35}}
+
+% ---------- theorem-like environments (numbered by chapter), coloured headings ----------
+\newtheoremstyle{coldef}{}{}{\normalfont}{}{\bfseries\color{defcol}}{.}{ }{}
+\newtheoremstyle{colex}{}{}{\normalfont}{}{\bfseries\color{intcol}}{.}{ }{}
+\newtheoremstyle{colexer}{}{}{\normalfont}{}{\bfseries\color{exercol}}{.}{ }{}
+\newtheoremstyle{colthm}{}{}{\itshape}{}{\bfseries\color{thmcol}}{.}{ }{}
+\newtheoremstyle{colrem}{}{}{\normalfont}{}{\itshape\color{srccol}}{.}{ }{}
+\theoremstyle{coldef}
+\newtheorem{definition}{Definition}[chapter]
+\theoremstyle{colex}
+\newtheorem{example}[definition]{Example}
+\theoremstyle{colexer}
+\newtheorem{exercise}{Exercise}[chapter]
+\theoremstyle{colthm}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\theoremstyle{colrem}
+\newtheorem{remark}[definition]{Remark}
+\crefname{exercise}{Exercise}{Exercises}
+\globalcounter{definition}\globalcounter{exercise}
+
+% Right-column items are queued and written into the right column at the next point where the
+% text column is between paragraphs at top level (end of the paragraph, end of a box, end of a
+% list): there the columns are synchronised, the queued items are typeset in the right column,
+% and the text continues from where it was.
+\makeatletter
+\newif\ifnote@inbox
+\newif\ifside@inright
+\def\note@queue{}
+\def\side@pcname{paracol}
+\newcommand{\side@emit}{\ifx\note@queue\@empty\else
+  \let\note@tmp\note@queue\gdef\note@queue{}%
+  \synccounter{chapter}\synccounter{section}\synccounter{subsection}\synccounter{subsubsection}%
+  \switchcolumn*\side@inrighttrue\note@tmp\par\side@inrightfalse\switchcolumn\fi}
+\newcommand{\note@flush}{\ifvmode\ifnote@inbox\else\ifside@inright\else
+  \ifx\@currenvir\side@pcname\side@emit\fi\fi\fi\fi}
+\newcommand{\side@put}[1]{\gappto\note@queue{#1}\note@flush}
+\AddToHook{para/after}{\note@flush}
+\tcbset{note queue/.code={\appto\kvtcb@afterbox{\note@flush}}}
+% every chapter/appendix file is one paracol environment: it starts right after the \chapter
+% line of the file (\begin{paracol}{2}) and is closed here (appendix A, only long tables, has none:
+% longtable does not work inside paracol)
+\AddToHook{include/end}{\par\note@flush\ifx\@currenvir\side@pcname\end{paracol}\fi}
+\newcommand{\flushside}{\par\note@flush}
+\makeatother
+\tcbset{thmbox/.style={enhanced,breakable,colback=#1!7,colframe=#1!7,borderline west={3pt}{0pt}{#1},
+  sharp corners,left=6pt,right=4pt,top=2pt,bottom=2pt,before skip=8pt,after skip=8pt,
+  before upper={\csname note@inboxtrue\endcsname},note queue}}
+\tcolorboxenvironment{definition}{thmbox=defcol}
+\tcolorboxenvironment{theorem}{thmbox=thmcol}
+\tcolorboxenvironment{proposition}{thmbox=thmcol}
+\tcolorboxenvironment{lemma}{thmbox=thmcol}
+\tcolorboxenvironment{corollary}{thmbox=thmcol}
+% (examples are boxed in the right column, see \begin{example} below)
+\tcolorboxenvironment{exercise}{thmbox=exercol}
+\tcolorboxenvironment{remark}{thmbox=srccol}
+
+% ---------- content boxes ----------
+\tcbset{notebox/.style={enhanced,breakable,colback=#1!7,colframe=#1,
+  fonttitle=\bfseries,coltitle=white,colbacktitle=#1,boxrule=0.6pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,before skip=10pt,after skip=10pt,
+  before upper={\csname note@inboxtrue\endcsname},note queue}}
+% Box title: the box type in capitals, then the topic
+\newcommand{\boxtitle}[2]{\MakeUppercase{#1}\ifx&#2&\else: #2\fi}
+% Intuition: the "physicist's reading" of a result
+\newtcolorbox{intuition}[1][]{notebox=intucol,title={\boxtitle{Intuition}{#1}}}
+% Application: where a method is used in science and engineering (orange)
+\newtcolorbox{application}[1][]{notebox=fincol,title={\boxtitle{Application}{#1}}}
+% Case study: a data set worked through in the lectures (cylinder wake, Lorenz, measles, ...)
+\newtcolorbox{casestudy}[1][]{notebox=cscol,title={\boxtitle{Case study}{#1}}}
+% Summary / key formulas
+\newtcolorbox{keyformulas}{notebox=keycol,fontupper=\small,title={\boxtitle{Key formulas}{}}}
+% Sources: which lectures, videos and files a chapter is built on
+\newtcolorbox{sources}{notebox=srccol,fontupper=\footnotesize,title={\boxtitle{Sources for this chapter}{}},before upper=\raggedright}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+% Reading: the matching sections of Brunton & Kutz, Data-Driven Science and Engineering
+\newtcolorbox{reading}[1][]{notebox=srccol,title={\boxtitle{Reading}{#1}}}
+
+% non-floating figure (floats inside paracol columns can leave a page almost empty): same caption
+% and numbering as figure
+\makeatletter
+\newenvironment{nfigure}{\par\medskip\begin{center}\def\@captype{figure}}{\end{center}\medskip}
+\makeatother
+% Note on course material (errata, missing lectures, differences 2013/2024): right column, see below
+% Secondary material ("beyond the core"): can be skipped on a first reading
+\newtcolorbox{secondary}[1][]{enhanced,breakable,colback=white,colframe=white,boxrule=0pt,
+  borderline west={1.5pt}{0pt}{srccol!60},sharp corners,left=8pt,right=0pt,top=1pt,bottom=1pt,
+  before skip=6pt,after skip=6pt,fontupper=\small,
+  title={\footnotesize\sffamily$\diamond$\ \boxtitle{Beyond the core}{#1}},
+  coltitle=srccol,colbacktitle=white,fonttitle=\bfseries,titlerule=0pt,toptitle=0pt,bottomtitle=0pt,
+  before upper={\csname note@inboxtrue\endcsname},note queue}
+% ============================================================
+%  The right column: the reader's notes/answers/feedback in \tiny; examples, proofs, course notes,
+%  history and asides in \scriptsize
+% ============================================================
+%  \note{...}     the reader's comment/doubt, NEW (not yet read by Claude)
+%  \note*{...}    a request that has been carried out (green DONE tag)
+%  \note+{...}    a comment that has been read and needs no answer (blue SEEN tag)
+%  \begin{answer}{question}[topic] ... \end{answer}
+%                 a doubt and its answer in one box: the question on top, then a dark yellow
+%                 bar "ANSWER n: topic" and the answer; \answerpart{topic} starts a further
+%                 answer in the same box (one per question); \label{ans:...} makes it citable
+%  \feedback{...} a comment on one of the reader's own solutions (indigo)
+%  \begin{history}[topic], \begin{aside}[topic], \begin{coursenote}[topic]
+%  example and proof environments are also printed here (sideexample = example)
+%  Inside a coloured box of the main text, margin items appear right after the box.
+\makeatletter
+\tcbset{sidebox/.style={enhanced,colback=#1!25,colframe=#1,boxrule=0.5pt,arc=1pt,
+    left=3pt,right=3pt,top=2pt,bottom=2pt,before skip=0pt,after skip=0pt,
+    fontupper=\tiny\sffamily\mdseries\upshape\raggedright,fonttitle=\tiny\sffamily\bfseries,
+    before upper={\note@inboxtrue}}}
+\newcommand{\side@tag}[2]{\colorbox{#1}{\textcolor{white}{\bfseries\tiny #2}}\par}
+% Notes and answered notes are numbered per chapter like footnotes: a small dark-yellow number in
+% the text marks the point where the note was written, the same number starts its box.
+\newcounter{sidenote}[chapter]
+\globalcounter{sidenote}
+\newcommand{\side@numput}[1]{\stepcounter{sidenote}%
+  \ifhmode\ifdim\lastkern=0.01pt\textsuperscript{\sffamily\bfseries\color{anscol!75!black},}\fi
+    \textsuperscript{\sffamily\bfseries\color{anscol!75!black}\thesidenote}\kern0.01pt\fi
+  \begingroup\edef\x{\endgroup\noexpand\side@put{\def\noexpand\side@num{\thesidenote}\unexpanded{#1}}}\x}
+\newcommand{\side@numtag}{{\bfseries\color{anscol!75!black}\side@num}\enspace}
+\NewDocumentCommand{\note}{s t+ +m}{\side@numput{\begin{tcolorbox}[sidebox=notecol]%
+  \IfBooleanT{#1}{\side@tag{okcol}{DONE}}\IfBooleanT{#2}{\side@tag{defcol}{SEEN}}\side@numtag#3\end{tcolorbox}}}
+\newcommand{\feedback}[1]{\side@put{\begin{tcolorbox}[sidebox=exercol]\side@tag{exercol}{FEEDBACK}#1\end{tcolorbox}}}
+\newcounter{answer}[chapter]
+\renewcommand{\theanswer}{\thechapter.\arabic{answer}}
+\crefname{answer}{answer}{answers}
+\globalcounter{answer}
+\newcommand{\answerpart}[1]{\refstepcounter{answer}%
+  \tcbsubtitle[colback=anscol,colframe=anscol,coltext=black,fontupper=\tiny\sffamily\bfseries,
+    left=3pt,top=0.5pt,bottom=0.5pt,before skip=2pt,after skip=2pt]{ANSWER \theanswer\ifx&#1&\else: #1\fi}}
+\NewDocumentEnvironment{answer}{m O{} +b}{\side@numput{\begin{tcolorbox}[sidebox=notecol,colback=notecol!12]%
+  \side@numtag#1\answerpart{#2}#3\end{tcolorbox}}}{}
+% Content boxes of the right column (examples, proofs, course notes, history, asides): \scriptsize,
+% one step above the \tiny of the reader's notes
+\tcbset{sidecontent/.style={sidebox=#1,colback=#1!6,breakable,
+    fontupper=\scriptsize\mdseries\upshape\raggedright,fonttitle=\scriptsize\sffamily\bfseries,coltitle=white,colbacktitle=#1}}
+\NewDocumentEnvironment{aside}{O{} +b}{\side@put{\begin{tcolorbox}[sidecontent=histcol,
+  title={\boxtitle{Aside}{#1}}]#2\end{tcolorbox}}}{}
+\NewDocumentEnvironment{coursenote}{O{} +b}{\side@put{\begin{tcolorbox}[sidecontent=srccol,
+  title={\boxtitle{Course note}{#1}}]#2\end{tcolorbox}}}{}
+% Examples and proofs keep their theorem-like look (numbering, labels, QED) but go to the right column
+\let\origexample\example \let\endorigexample\endexample
+\RenewDocumentEnvironment{example}{o +b}{\side@put{\begin{tcolorbox}[thmbox=intcol,
+  fontupper=\scriptsize,before skip=0pt,after skip=0pt]%
+  \IfValueTF{#1}{\begin{origexample}[#1]}{\begin{origexample}}#2\end{origexample}\end{tcolorbox}}}{}
+\NewDocumentEnvironment{sideexample}{o +b}{\IfValueTF{#1}{\begin{example}[#1]}{\begin{example}}#2\end{example}}{}
+\let\origproof\proof \let\endorigproof\endproof
+% A proof must start level with the top of its theorem: a theorem directly followed by \begin{proof}
+% is held back (\thm@pend) and typeset by the proof, right after the proof has been queued.
+\def\thm@pend{}
+\newtoks\thm@tk
+\newcommand{\thm@typeset}{{\edef\@currenvir{\side@pcname}\begin{tcolorbox}[thmbox=thmcol]\expandafter\IfValueTF\expandafter{\thm@opt}%
+  {\begin{orig\thm@cur}[\thm@opt]\the\thm@tk\end{orig\thm@cur}}{\begin{orig\thm@cur}\the\thm@tk\end{orig\thm@cur}}\end{tcolorbox}}}
+\newcommand{\thm@peek}[3]{\def\thm@a{proof}\def\thm@b{#3}%
+  \ifx\thm@a\thm@b\gdef\thm@pend{\thm@typeset}\else\thm@typeset\fi#1#2{#3}}
+\newcommand{\thm@look}[2]{\@ifnextchar\begin{\thm@peek{#1{#2}}}{\thm@typeset#1{#2}}}
+\RenewDocumentEnvironment{proof}{o +b}{\par{\edef\@currenvir{\side@pcname}\side@put{\begin{tcolorbox}[thmbox=thmcol,colback=thmcol!3,
+  fontupper=\scriptsize,before skip=0pt,after skip=0pt]%
+  \IfValueTF{#1}{\begin{origproof}[#1]}{\begin{origproof}}#2\end{origproof}\end{tcolorbox}}%
+  \thm@pend}\gdef\thm@pend{}}{}
+\@for\thm@n:=theorem,proposition,lemma,corollary\do{%
+  \RemoveFromHook{env/\thm@n/before}[tcolorbox]\RemoveFromHook{env/\thm@n/after}[tcolorbox]%
+  \expandafter\let\csname orig\thm@n\expandafter\endcsname\csname\thm@n\endcsname
+  \expandafter\let\csname endorig\thm@n\expandafter\endcsname\csname end\thm@n\endcsname
+  \expandafter\edef\csname thm@def@\thm@n\endcsname{\noexpand\RenewDocumentEnvironment{\thm@n}{o +b}%
+    {\noexpand\global\noexpand\thm@tk{##2}\noexpand\gdef\noexpand\thm@cur{\thm@n}\noexpand\gdef\noexpand\thm@opt{##1}\noexpand\thm@look}{}}%
+  \csname thm@def@\thm@n\endcsname}
+\makeatother
+% History: a fact from the history of finance/mathematics, framed like a classical
+% temple front: a dentilled entablature (the title) on two Ionic columns (not breakable)
+\newcommand{\histcolumn}[2]{% #1 = foot of the column, #2 = top of the capital (coordinate names)
+  \fill[histcol] ([xshift=-6pt]#1) rectangle ([xshift=6pt,yshift=2.5pt]#1);
+  \fill[histcol] ([xshift=-4.5pt,yshift=2.5pt]#1) rectangle ([xshift=4.5pt,yshift=4pt]#1);
+  \fill[histcol!15] ([xshift=-3.5pt,yshift=4pt]#1) rectangle ([xshift=3.5pt,yshift=-5pt]#2);
+  \foreach \dx in {-3.5,-1.2,1.2,3.5}
+    \draw[histcol,line width=0.4pt] ([xshift=\dx pt,yshift=4pt]#1) -- ([xshift=\dx pt,yshift=-5pt]#2);
+  \fill[histcol] ([xshift=-4.5pt,yshift=-5pt]#2) rectangle ([xshift=4.5pt,yshift=-2.5pt]#2);
+  \foreach \dx in {-4.5,4.5} {
+    \draw[histcol,line width=0.8pt,fill=white] ([xshift=\dx pt,yshift=-4.5pt]#2) circle (1.9pt);
+    \fill[histcol] ([xshift=\dx pt,yshift=-4.5pt]#2) circle (0.6pt);}
+  \fill[histcol] ([xshift=-6.5pt,yshift=-2.5pt]#2) rectangle ([xshift=6.5pt]#2);}
+\makeatletter
+\NewDocumentEnvironment{history}{O{} +b}{\side@put{\begin{tcolorbox}[histbox,title={\boxtitle{History}{#1}}]#2\end{tcolorbox}}}{}
+\makeatother
+\tcbset{histbox/.style={enhanced,colback=histcol!6,colframe=histcol,boxrule=0.8pt,sharp corners,
+  fonttitle=\scriptsize\sffamily\bfseries,fontupper=\normalfont\scriptsize\raggedright,coltitle=white,colbacktitle=histcol,
+  left=18pt,right=18pt,top=6pt,bottom=3pt,before skip=0pt,after skip=0pt,
+  before upper={\csname note@inboxtrue\endcsname},
+  overlay={
+    \draw[histcol,line width=2.5pt,dash pattern=on 2.5pt off 2pt]
+      ([yshift=-1.25pt]title.south west) -- ([yshift=-1.25pt]title.south east);
+    \coordinate (hfL) at ([xshift=9pt]frame.south west);
+    \coordinate (htL) at ([xshift=9pt,yshift=-2.5pt]title.south west);
+    \coordinate (hfR) at ([xshift=-9pt]frame.south east);
+    \coordinate (htR) at ([xshift=-9pt,yshift=-2.5pt]title.south east);
+    \histcolumn{hfL}{htL}\histcolumn{hfR}{htR}}}}
+% The reader's own solution to an exercise, placed right below the exercise
+%   \begin{mysolution}[optional topic] ... \end{mysolution}
+\newtcolorbox{mysolution}[1][]{notebox=exercol,colback=exercol!5,fontupper=\small,
+  title={\boxtitle{My solution}{#1}}}
+% A request about the notes themselves (collected in the "Requests" chapter)
+%   \request{done|open|noted}{where it was written}{the request}{what was done}
+\makeatletter
+\newcommand{\request}[4]{\ifstrequal{#1}{done}{\def\req@col{okcol}}{\ifstrequal{#1}{open}{\def\req@col{thmcol}}{\def\req@col{defcol}}}%
+  \begin{tcolorbox}[sidebox=notecol,colback=notecol!12,fontupper=\small\sffamily\raggedright,
+  before skip=5pt,after skip=5pt]%
+  \side@tag{\req@col}{\MakeUppercase{#1}}%
+  {\itshape #2.}\ #3%
+  \tcbsubtitle[colback=anscol,colframe=anscol,coltext=black,fontupper=\scriptsize\sffamily\bfseries,
+    left=3pt,top=0.5pt,bottom=0.5pt,before skip=2pt,after skip=2pt]{WHAT WAS DONE}#4\end{tcolorbox}}
+\makeatother
+
+
+
+% ---------- video timestamps ----------
+%  \ts{4}{2}{3:10}  -> chapter 4, video 2 of that chapter, at 3:10 of that video
+%  Each tag is a link to the YouTube video at that second. The IDs (playlist "Dynamical Systems
+%  (with Machine Learning)", Steve Brunton) are in videos.tex, generated by ../tools/transcripts.py;
+%  an unknown video or a non-numeric time prints the tag without link.
+\ExplSyntaxOn
+\cs_new_protected:Npn \tsvideo #1#2 { \tl_const:cx { c__ts_#1_tl } { \tl_to_str:n {#2} } }
+\int_new:N \l__ts_int
+\seq_new:N \l__ts_seq
+\cs_new_protected:Npn \tslink #1#2#3#4
+  {
+    \tl_if_exist:cTF { c__ts_#1@#2_tl }
+      { \regex_match:nnTF { \A\d+(:\d+)*\Z } {#3} { \__ts_href:nnnn {#1} {#2} {#3} {#4} } {#4} }
+      {#4}
+  }
+\cs_new_protected:Npn \__ts_href:nnnn #1#2#3#4
+  {
+    \int_zero:N \l__ts_int
+    \exp_args:NNV \seq_set_split:Nnn \l__ts_seq \c_colon_str {#3}
+    \seq_map_inline:Nn \l__ts_seq { \int_set:Nn \l__ts_int { 60*\l__ts_int + ##1 } }
+    \exp_args:Ne \href { \tl_to_str:n { https://youtu.be/ } \tl_use:c { c__ts_#1@#2_tl } \tl_to_str:n { ?t= } \int_use:N \l__ts_int } {#4}
+  }
+\ExplSyntaxOff
+\input{videos}
+\makeatletter % consecutive tags may break between them, but never before punctuation
+\DeclareRobustCommand{\ts}[3]{\mbox{\footnotesize\sffamily\color{srccol}\tslink{#1}{#2}{#3}{\color{srccol}[$\blacktriangleright$\,V#1.#2\,@\,#3]}}\@ifnextchar\ts{\allowbreak}{}}
+% link to a whole video (no time), e.g. in the Sources box: \seg{4}{2}{text}
+\newcommand{\seg}[3]{\tslink{#1}{#2}{0}{#3}}
+\makeatother
+
+% ---------- maths shortcuts ----------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Q}{\mathbb{Q}}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\diag}{diag}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\K}{\mathcal{K}}  % Koopman operator
+\newcommand{\vb}[1]{\mathbf{#1}} % vectors and matrices of data: \vb x, \vb X
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\eqd}{\stackrel{d}{=}}
+
+% ---------- code: the Matlab demos of the lectures, rewritten in Python ----------
+%  \begin{code}[topic] ... \end{code}   (a listing in a grey-blue box; must be in the text column)
+\lstdefinestyle{py}{language=Python,basicstyle=\ttfamily\footnotesize,columns=fullflexible,keepspaces,
+  keywordstyle=\color{defcol}\bfseries,commentstyle=\color{intcol}\itshape,stringstyle=\color{fincol},
+  showstringspaces=false,breaklines=true,upquote=true}
+\newtcblisting{code}[1][]{notebox=srccol,colback=srccol!4,listing only,listing options={style=py},
+  title={\boxtitle{Python}{#1}}}
+
+% ---------- file references ----------
+\DeclareRobustCommand{\file}[1]{\texttt{\small\detokenize{#1}}}
