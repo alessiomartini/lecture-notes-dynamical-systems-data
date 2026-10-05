@@ -1,0 +1,438 @@
+% !TEX root = ../main.tex
+\chapter{Fundamentals: Fixed Points, Linearization, Invariant Manifolds, Bifurcations, Chaos}\label{ch:fundamentals}
+\begin{paracol}{2}
+
+\begin{sources}
+\begin{tabularx}{\linewidth}{@{}V l L@{}}
+\toprule
+\textbf{Video} & \textbf{Length} & \textbf{Content}\\
+\midrule
+\seg{2}{1}{V2.1 Topics in Dynamical Systems: Fixed Points, Linearization, Invariant Manifolds, Bifurcations \& Chaos} & 32:11 & Linear, mildly nonlinear and chaotic systems; fixed points and linearization; eigenvector coordinates; the Duffing oscillator; stable and unstable manifolds; pitchfork and Hopf bifurcations; discrete-time maps and the logistic map; the flow map; particles in flows and FTLE; chaos as stretching and folding.\\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+\textbf{Transcript} \file{materials/transcripts/C02-V01.txt}.
+\textbf{Book} Sec.~7.1 (``Dynamical systems'', ``Discrete-time systems'', ``Linear dynamics and
+spectral decomposition''), Sec.~8.2 (linear systems).
+This is the \emph{last} video of the playlist (recorded about three years after most of the others):
+it is placed here because it is the background for everything that follows.
+\end{sources}
+
+\section*{Motivation}
+A ``mile-high'' tour of what one learns in a course on dynamical systems \ts{2}{1}{0:20}. Every
+vignette (fixed points, linearization, manifolds, bifurcations, maps, chaos) would be a couple of
+lectures in a real course \ts{2}{1}{31:11}. The reason it belongs in a course on machine learning is
+stated at the very end: when a model of a dynamical system is learned from data, these are the
+properties one checks it against. Are the fixed points in the right places? Do the local linearizations
+have the right stability? Does the model mix statistically like the data? \ts{2}{1}{31:32}.
+
+For a physics MSc most of this is a refresher of classical mechanics and of the theory of ODEs; the
+chapter is kept compact, with the derivations that are reused later (linearization, eigenvector
+coordinates, flow map) written out in full.
+
+% ------------------------------------------------------------------
+\section{From linear to chaotic}\label{sec:fu-progression}
+
+A dynamical system is any system that evolves in time according to some rules
+\ts{2}{1}{0:41}: an apple falling under $F=ma$, a fluid obeying the Navier--Stokes equations, a
+pendulum, a car, but also the brain, whose neurons fire according to rules that certainly exist even if
+we cannot write them all down \ts{2}{1}{1:02}\ts{2}{1}{1:22}. Brunton orders systems by increasing
+nonlinearity \ts{2}{1}{1:42}:
+\begin{enumerate}
+  \item \textbf{linear} systems: the pendulum at small angles, a network of springs, masses and dampers;
+        they oscillate, and superposition holds \ts{2}{1}{2:03}\ts{2}{1}{2:23};
+  \item \textbf{mildly nonlinear} systems, such as Hamiltonian or Lagrangian dynamics: the Duffing
+        oscillator, a bead sliding on a wire shaped like a double well, with several fixed points
+        \ts{2}{1}{3:05}\ts{2}{1}{3:26};
+  \item \textbf{chaotic} systems: still deterministic, but with limited forecast ability, because an
+        imperfectly known initial state or dynamics makes the prediction diverge from the truth after
+        some time (double pendulum, Lorenz attractor, weather, turbulence) \ts{2}{1}{3:46}\ts{2}{1}{4:06}.
+\end{enumerate}
+
+\begin{definition}[New concepts: linearity, superposition]
+The system $\dot{\vb x}=\vb f(\vb x)$ is \textbf{linear} if $\vb f(\vb x)=A\vb x$ for a matrix $A$. Then
+\textbf{superposition} holds: if $\vb x_1(t)$ and $\vb x_2(t)$ are solutions, so is
+$a\vb x_1(t)+b\vb x_2(t)$; adding two initial conditions adds the two solutions \ts{2}{1}{2:44}.
+Superposition holds \emph{only} for linear systems.
+\end{definition}
+
+The state is again the minimal description, $(\theta,\dot\theta)$ for the pendulum, and $\vb f$ comes
+from the Euler--Lagrange equations, $F=ma$ or Hamilton's equations \ts{2}{1}{4:48}\ts{2}{1}{5:09}
+(\cref{def:ov-anatomy}).
+
+% ------------------------------------------------------------------
+\section{Fixed points and linearization}\label{sec:fu-linearization}
+
+The pendulum behaves linearly when kicked a little near the bottom, nonlinearly when released from
+near $\theta=\pi$ \ts{2}{1}{5:29}\ts{2}{1}{5:50}. The standard strategy for a nonlinear system is:
+find the fixed points, linearize around them, and do linear analysis there \ts{2}{1}{9:35}.
+
+\begin{definition}[New concepts: fixed point, Jacobian, linearization]\label{def:fu-fixed}
+\begin{enumerate}[(a)]
+  \item A \textbf{fixed point} (equilibrium) is a state $\bar{\vb x}$ with $\vb f(\bar{\vb x})=0$: started
+        there, the system stays there \ts{2}{1}{6:10}.
+  \item The \textbf{Jacobian} of $\vb f$ at $\bar{\vb x}$ is the matrix of partial derivatives
+        $A=D\vb f(\bar{\vb x})$, $A_{ij}=\partial f_i/\partial x_j\,(\bar{\vb x})$ \ts{2}{1}{8:54}.
+  \item The \textbf{linearization} at $\bar{\vb x}$ is the linear system
+        $\frac{\mathrm d}{\mathrm dt}\Delta\vb x=A\,\Delta\vb x$ for the displacement
+        $\Delta\vb x=\vb x-\bar{\vb x}$.
+\end{enumerate}
+The name \emph{Jacobian} honours Carl Gustav Jacob Jacobi (1804--1851), who studied these
+determinants of partial derivatives in 1841.
+\end{definition}
+
+The pendulum has two fixed points: down, $(\theta,\dot\theta)=(0,0)$, and up, $(\pi,0)$; the second is
+unstable, but perfectly balanced it stays put \ts{2}{1}{6:10}\ts{2}{1}{6:31}
+(\cref{fig:ov-pendulum}).
+
+\paragraph{Derivation.} Zoom into a neighbourhood of $\bar{\vb x}$ and write
+$\vb x=\bar{\vb x}+\Delta\vb x$ with $\Delta\vb x$ small \ts{2}{1}{7:12}. Since $\bar{\vb x}$ is
+constant,
+\begin{equation}\label{eq:fu-taylor}
+  \frac{\mathrm d}{\mathrm dt}\Delta\vb x=\dot{\vb x}=\vb f(\bar{\vb x}+\Delta\vb x)
+  =\underbrace{\vb f(\bar{\vb x})}_{=0}+D\vb f(\bar{\vb x})\,\Delta\vb x+O(\lVert\Delta\vb x\rVert^2)
+\end{equation}
+by Taylor expansion \ts{2}{1}{7:32}\ts{2}{1}{7:52}. Close to the fixed point the higher-order terms are
+negligible, and what remains is an honest linear system $\Delta\dot{\vb x}=A\Delta\vb x$
+\ts{2}{1}{8:13}\ts{2}{1}{9:15}. Its eigenvalues say whether the fixed point is stable; its eigenvectors
+say along which directions it is unstable \ts{2}{1}{9:15}.
+
+\begin{theorem}[Hartman--Grobman]\label{thm:fu-hg}
+If no eigenvalue of $A=D\vb f(\bar{\vb x})$ has zero real part (\emph{hyperbolic} fixed point), then in
+a neighbourhood of $\bar{\vb x}$ the flow of $\dot{\vb x}=\vb f(\vb x)$ is topologically conjugate
+(by a homeomorphism) to the flow of $\Delta\dot{\vb x}=A\Delta\vb x$.
+\end{theorem}
+\Cref{thm:fu-hg} is what justifies the strategy, and its hypothesis is what limits it: for eigenvalues
+on the imaginary axis (centres, as in the Duffing wells below) the linearization alone decides nothing.
+
+\paragraph{Eigenvector coordinates.} As in \cref{prop:ov-linear}, the solution is
+$\vb x(t)=e^{At}\vb x_0$, which advances any initial condition any time forward or backward, and is
+easy to compute \ts{2}{1}{9:55}\ts{2}{1}{10:16}. With the eigenvectors $T$ of $A$ and $\vb x=T\vb z$:
+$\dot{\vb z}=T^{-1}\dot{\vb x}=T^{-1}A\vb x=T^{-1}AT\,\vb z=\Lambda\vb z$; it looks worse, but
+$T^{-1}AT=\Lambda$ is diagonal, so the dynamics decouple \ts{2}{1}{10:37}\ts{2}{1}{10:57}\ts{2}{1}{11:18}.
+
+\begin{intuition}[Three steps: map in, advance, map out]
+Brunton's favourite reading of $\vb x(t)=Te^{\Lambda t}T^{-1}\vb x_0$ \ts{2}{1}{11:59}, read from
+right to left \ts{2}{1}{12:40}:
+\begin{enumerate}
+  \item $T^{-1}$ maps the initial condition into eigenvector coordinates, $\vb z_0=T^{-1}\vb x_0$;
+  \item there the system is decoupled: each $z_j$ is advanced independently, $z_j(t)=e^{\lambda_jt}z_j(0)$;
+  \item $T$ maps back to physical space \ts{2}{1}{13:00}\ts{2}{1}{13:41}.
+\end{enumerate}
+The same ``lift, evolve linearly, project back'' structure returns in DMD and Koopman theory, where the
+lift is nonlinear.
+\end{intuition}
+
+% ------------------------------------------------------------------
+\section{The Duffing oscillator and invariant manifolds}\label{sec:fu-duffing}
+
+\begin{casestudy}[Particle in a double well]
+The Duffing oscillator without friction \ts{2}{1}{14:43}:
+\begin{equation}\label{eq:fu-duffing}
+  \dot x=v,\qquad \dot v=x-x^3 .
+\end{equation}
+It is Newton's law $\ddot x=-V'(x)$ in the double-well potential $V(x)=x^4/4-x^2/2$ (a frictionless
+roller coaster with this shape) \ts{2}{1}{17:08}\ts{2}{1}{17:28}. In the video the potential is written
+loosely as ``$x^4-x^2$'', which has the same shape.
+\begin{itemize}
+  \item \emph{Fixed points}: $v=0$ and $x-x^3=0$, i.e.\ $x\in\{0,\pm1\}$ \ts{2}{1}{15:04}.
+  \item \emph{Phase portrait}: a particle released at rest on a wall accelerates to maximal speed at the
+        bottom, decelerates to rest on the opposite wall, comes back: a closed orbit in the $(x,v)$
+        plane, forever, without friction \ts{2}{1}{15:44}\ts{2}{1}{16:27}\ts{2}{1}{16:47}.
+  \item \emph{Jacobian} \ts{2}{1}{17:49}:
+        $A(\bar x)=\begin{pmatrix}0&1\\1-3\bar x^2&0\end{pmatrix}$; friction would add a term in the
+        lower right corner \ts{2}{1}{18:10}.
+  \item At $(\pm1,0)$: $A=\begin{pmatrix}0&1\\-2&0\end{pmatrix}$, eigenvalues $\pm i\sqrt2$: neutrally
+        stable, oscillation forever (a \emph{centre}) \ts{2}{1}{18:30}.
+  \item At $(0,0)$: $A=\begin{pmatrix}0&1\\1&0\end{pmatrix}$, eigenvalues $\pm1$: a \emph{saddle};
+        a small push sends the car away \ts{2}{1}{18:51}. The eigenvectors $(1,\pm1)/\sqrt2$ are the
+        45-degree lines of \cref{fig:fu-duffing} \ts{2}{1}{19:11}\ts{2}{1}{19:31}.
+\end{itemize}
+\end{casestudy}
+
+\begin{code}[fixed points and stability of the Duffing oscillator]
+import numpy as np
+
+def f(x):                      # Duffing without friction: x' = v, v' = x - x^3
+    return np.array([x[1], x[0] - x[0]**3])
+
+def jacobian(x):
+    return np.array([[0.0, 1.0],
+                     [1.0 - 3.0 * x[0]**2, 0.0]])
+
+for xbar in ([0.0, 0.0], [1.0, 0.0], [-1.0, 0.0]):
+    xbar = np.array(xbar)
+    assert np.allclose(f(xbar), 0)           # it is a fixed point
+    lam, T = np.linalg.eig(jacobian(xbar))
+    print(xbar, 'eigenvalues', np.round(lam, 3))
+    if np.isreal(lam).all():
+        print('   eigenvectors (columns)\n', np.round(T, 3))
+# [0. 0.]  eigenvalues [ 1.+0.j -1.+0.j]   eigenvectors (0.707, 0.707), (-0.707, 0.707)
+# [1. 0.]  eigenvalues [0.+1.414j 0.-1.414j]
+# [-1. 0.] eigenvalues [0.+1.414j 0.-1.414j]
+\end{code}
+
+\begin{nfigure}
+\begin{tikzpicture}[x=2.2cm,y=2.2cm,>=Stealth]
+  % level sets of E = v^2/2 - x^2/2 + x^4/4
+  \foreach \c in {-0.2,-0.1} {
+    \pgfmathsetmacro{\a}{sqrt(1-sqrt(1+4*\c))}\pgfmathsetmacro{\b}{sqrt(1+sqrt(1+4*\c))}
+    \foreach \s in {1,-1} {
+      \draw[intcol,thick,smooth,samples=60,domain=\a+0.0005:\b-0.0005] plot ({\s*\x},{sqrt(max(0,2*(\c+\x*\x/2-\x*\x*\x*\x/4)))});
+      \draw[intcol,thick,smooth,samples=60,domain=\a+0.0005:\b-0.0005] plot ({\s*\x},{-sqrt(max(0,2*(\c+\x*\x/2-\x*\x*\x*\x/4)))});
+    }
+  }
+  % separatrix E = 0 (homoclinic orbits)
+  \draw[thmcol,very thick,smooth,samples=80,domain=-1.4142:1.4142] plot (\x,{abs(\x)*sqrt(max(0,1-\x*\x/2))});
+  \draw[thmcol,very thick,smooth,samples=80,domain=-1.4142:1.4142] plot (\x,{-abs(\x)*sqrt(max(0,1-\x*\x/2))});
+  % outer orbit E = 0.3
+  \draw[defcol,thick,smooth,samples=160,domain=-1.5757:1.5757] plot (\x,{sqrt(max(0,2*(0.3+\x*\x/2-\x*\x*\x*\x/4)))});
+  \draw[defcol,thick,smooth,samples=160,domain=-1.5757:1.5757] plot (\x,{-sqrt(max(0,2*(0.3+\x*\x/2-\x*\x*\x*\x/4)))});
+  % eigenvectors at the saddle
+  \draw[dashed,thmcol] (-0.5,-0.5) -- (0.5,0.5) (-0.5,0.5) -- (0.5,-0.5);
+  \draw[->] (-1.8,0) -- (1.8,0) node[right] {$x$};
+  \draw[->] (0,-1.05) -- (0,1.1) node[above] {$v$};
+  \fill[thmcol] (0,0) circle (1.5pt); \fill[intcol] (1,0) circle (1.5pt) (-1,0) circle (1.5pt);
+  \node[below,font=\scriptsize] at (1,0) {$1$}; \node[below,font=\scriptsize] at (-1,0) {$-1$};
+  % potential, drawn above
+  \begin{scope}[yshift=-2.6cm]
+  \end{scope}
+\end{tikzpicture}\hspace{0.8cm}
+\begin{tikzpicture}[x=1.4cm,y=4cm]
+  \draw[->] (-1.7,0) -- (1.7,0) node[right] {$x$};
+  \draw[->] (0,-0.3) -- (0,0.45) node[above] {$V(x)$};
+  \draw[srccol,very thick,smooth,samples=80,domain=-1.6:1.6] plot (\x,{\x*\x*\x*\x/4-\x*\x/2});
+  \fill[intcol] (1,-0.25) circle (2pt) (-1,-0.25) circle (2pt);
+  \fill[thmcol] (0,0) circle (2pt);
+\end{tikzpicture}
+\caption{Left: phase portrait of the Duffing oscillator \eqref{eq:fu-duffing}, level sets of the energy
+$E=\tfrac12v^2+V(x)$. Green: oscillations inside one well (around the centres $(\pm1,0)$); red: the two
+homoclinic orbits through the saddle, which are at the same time its stable and unstable manifolds;
+blue: an orbit above the barrier, visiting both wells. Dashed: the eigenvectors of the saddle, tangent
+to the manifolds. Right: the potential $V(x)=x^4/4-x^2/2$.}\label{fig:fu-duffing}
+\end{nfigure}
+
+\paragraph{Invariant manifolds.} Continuing the eigenvector lines of the saddle beyond the linear
+neighbourhood sweeps out the \emph{stable} and \emph{unstable manifolds} \ts{2}{1}{19:52}. A second
+example has a single fixed point at the origin which is a saddle, stable along $y$ and unstable along
+$x$: an initial condition first approaches along the stable direction, then leaves along the unstable
+one \ts{2}{1}{19:52}\ts{2}{1}{20:12}.
+
+\begin{definition}[New concepts: stable, unstable, invariant manifolds]
+For a fixed point $\bar{\vb x}$:
+\begin{enumerate}[(a)]
+  \item the \textbf{stable manifold} is $W^s=\{\vb x_0:\ \vb x(t)\to\bar{\vb x}\text{ as }t\to+\infty\}$;
+  \item the \textbf{unstable manifold} is $W^u=\{\vb x_0:\ \vb x(t)\to\bar{\vb x}\text{ as }t\to-\infty\}$;
+  \item a set is \textbf{invariant} if trajectories starting in it stay in it for all times; $W^s$ and
+        $W^u$ are invariant.
+\end{enumerate}
+By the stable manifold theorem, at a hyperbolic fixed point $W^s$ and $W^u$ are smooth manifolds tangent
+at $\bar{\vb x}$ to the stable and unstable eigenspaces of the linearization. \emph{Manifold}, the
+English rendering of Riemann's \emph{Mannigfaltigkeit}, ``multiplicity'': a space that looks locally
+like $\R^k$.
+\end{definition}
+
+\begin{example}[A saddle with a curved manifold]\label{ex:fu-saddle}
+A standard system with one saddle (the book uses it for Koopman theory in Sec.~7.4) is
+$\dot x=\mu x$, $\dot y=\lambda(y-x^2)$ with $\lambda<0<\mu$. The $y$-axis $x=0$ is invariant and is
+the stable manifold. The unstable manifold is the parabola $y=\frac{\lambda}{\lambda-2\mu}x^2$:
+substituting $y=cx^2$ gives $\dot y=2cx\dot x=2c\mu x^2$, which equals $\lambda(c-1)x^2$ for
+$c=\lambda/(\lambda-2\mu)$. Its tangent at the origin is the $x$-axis, the unstable eigenvector.
+\end{example}
+
+\begin{intuition}[Saddles amplify uncertainty]
+A ball of uncertainty advected near a saddle is squashed along the stable direction and stretched
+along the unstable one \ts{2}{1}{20:33}\ts{2}{1}{20:54}. Repeat this with saddles whose manifolds
+fold back (as in a bounded attractor) and you get \emph{stretching and folding}: one way to think
+about chaos.
+\end{intuition}
+
+% ------------------------------------------------------------------
+\section{Bifurcations}\label{sec:fu-bifurcations}
+
+Systems often depend on a parameter $\mu$: the inflow velocity or the size of the body in a wind
+tunnel, the infection rate of a disease like COVID-19 \ts{2}{1}{21:15}\ts{2}{1}{21:35}. One wants to
+know how the dynamics changes with $\mu$.
+
+\begin{definition}[New concepts: bifurcation, bifurcation diagram]
+A \textbf{bifurcation} is a qualitative change of the dynamics (number or stability of fixed points,
+appearance of periodic orbits, \dots) at a parameter value $\mu_c$: a tiny change of $\mu$ produces a
+big change of behaviour \ts{2}{1}{25:00}. A \textbf{bifurcation diagram} plots the fixed points (or
+attractors) against $\mu$. From the Latin \emph{bifurcus}, ``two-pronged fork''.
+\end{definition}
+
+\paragraph{Pitchfork.} $\dot x=\mu x-x^3=x(\mu-x^2)$ \ts{2}{1}{21:56}. For $\mu<0$ everything
+contracts to $x=0$. For $\mu>0$ the origin is linearly unstable: $x$ grows exponentially until the
+cubic term saturates it at $x^2=\mu$ \ts{2}{1}{22:16}\ts{2}{1}{22:57}\ts{2}{1}{23:18}. The linearization
+$\partial_x(\mu x-x^3)=\mu-3x^2$ gives $\mu$ at the origin and $-2\mu$ at $x=\pm\sqrt\mu$: two new stable
+branches \ts{2}{1}{23:38}.
+
+\paragraph{Hopf.} The same mechanism in two dimensions \ts{2}{1}{23:58}: in polar coordinates
+\begin{equation}\label{eq:fu-hopf}
+  \dot r=\mu r-r^3,\qquad \dot\theta=\omega ,
+\end{equation}
+i.e.\ $\dot x=\mu x-\omega y-x(x^2+y^2)$, $\dot y=\omega x+\mu y-y(x^2+y^2)$. For $\mu<0$ the origin
+is a stable spiral; at $\mu=0$ a pair of complex eigenvalues $\mu\pm i\omega$ crosses the imaginary
+axis, and for $\mu>0$ trajectories settle on a stable \emph{limit cycle} of radius $\sqrt\mu$, where the
+linear growth balances the cubic term \ts{2}{1}{24:19}. In polar form it is ``directly analogous to the
+pitchfork'' \ts{2}{1}{24:40}. Hopf bifurcations are everywhere in physical instabilities, for example
+the onset of vortex shedding behind a cylinder.
+
+\begin{nfigure}
+\begin{tikzpicture}[x=1.6cm,y=1.4cm,>=Stealth]
+  \draw[->] (-1.6,0) -- (1.7,0) node[right] {$\mu$};
+  \draw[->] (0,-1.4) -- (0,1.5) node[above] {$\bar x$};
+  \draw[intcol,very thick] (-1.5,0) -- (0,0);
+  \draw[thmcol,very thick,dashed] (0,0) -- (1.5,0);
+  \draw[intcol,very thick,smooth,domain=0:1.5,samples=60] plot (\x,{sqrt(\x)});
+  \draw[intcol,very thick,smooth,domain=0:1.5,samples=60] plot (\x,{-sqrt(\x)});
+  \foreach \y in {0.9,-0.9} \draw[->,srccol] (-0.8,\y) -- (-0.8,{\y*0.35});
+  \draw[->,srccol] (0.8,0.15) -- (0.8,0.65); \draw[->,srccol] (0.8,-0.15) -- (0.8,-0.65);
+  \draw[->,srccol] (0.8,1.35) -- (0.8,1.0);  \draw[->,srccol] (0.8,-1.35) -- (0.8,-1.0);
+  \node[font=\footnotesize] at (1.25,1.45) {$\bar x=\sqrt\mu$};
+\end{tikzpicture}\hspace{1.2cm}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+  \draw[->] (-1.7,0) -- (1.7,0) node[right] {$x$};
+  \draw[->] (0,-1.7) -- (0,1.7) node[above] {$y$};
+  \draw[intcol,very thick] (0,0) circle (1.1);
+  \draw[defcol,thick,->,domain=0:1080,samples=200,smooth] plot ({(0.12+0.98*(1-exp(-\x/300)))*cos(\x)},{(0.12+0.98*(1-exp(-\x/300)))*sin(\x)});
+  \draw[thmcol,thick,->,domain=0:900,samples=200,smooth] plot ({(1.6-0.48*(1-exp(-\x/250)))*cos(\x+40)},{(1.6-0.48*(1-exp(-\x/250)))*sin(\x+40)});
+  \node[font=\footnotesize,intcol] at (1.2,-1.35) {$r=\sqrt\mu$};
+\end{tikzpicture}
+\caption{Left: pitchfork bifurcation of $\dot x=\mu x-x^3$ (solid: stable, dashed: unstable fixed
+points; arrows: the flow in $x$ at fixed $\mu$). Right: Hopf normal form \eqref{eq:fu-hopf} for
+$\mu>0$: trajectories from inside and outside spiral onto the limit cycle.}\label{fig:fu-bif}
+\end{nfigure}
+
+\begin{remark}
+This is a cartoon of what is a whole graduate course: the classification of bifurcations (saddle-node,
+transcritical, pitchfork, Hopf, \dots) and normal forms \ts{2}{1}{24:40}.
+\end{remark}
+
+% ------------------------------------------------------------------
+\section{Discrete-time systems and the flow map}\label{sec:fu-discrete}
+
+\paragraph{Maps.} Dynamics can also be given in discrete time, $\vb x_{k+1}=\vb F(\vb x_k)$
+\ts{2}{1}{25:21}. The \emph{logistic map} $x_{k+1}=\mu x_k(1-x_k)$ models a population, say of bunnies
+in year $k$: compute the right-hand side to get next year's population, iterate year after year
+\ts{2}{1}{25:41}\ts{2}{1}{26:02}. Here $\mu$ is a reproduction rate, and sweeping it gives very different
+behaviours: around $\mu=3.45$ the population cycles reproducibly among a few values; for larger $\mu$ it
+wanders over a fractal set, the discrete-time analogue of chaos \ts{2}{1}{26:22}\ts{2}{1}{26:43}.
+Chapter~3 simulates it.
+
+\paragraph{The flow map.} Continuous-time systems induce discrete-time ones, which is what a computer
+simulation does \ts{2}{1}{27:04}\ts{2}{1}{27:24}.
+\begin{definition}[New concepts: flow map]\label{def:fu-flowmap}
+The \textbf{flow map} of $\dot{\vb x}=\vb f(\vb x)$ over a time $t$ is
+\begin{equation}\label{eq:fu-flowmap}
+  \vb F_t(\vb x(t_0))=\vb x(t_0+t)=\vb x(t_0)+\int_{t_0}^{t_0+t}\vb f(\vb x(\tau))\,\mathrm d\tau .
+\end{equation}
+The integration variable $\tau$ is there because the particle sees a different $\vb f$ as it moves
+\ts{2}{1}{27:45}. Sampling with step $\Delta t$ gives the map $\vb x_{k+1}=\vb F_{\Delta t}(\vb x_k)$,
+a program that steps the system forward \ts{2}{1}{28:06}. The flow maps form a group:
+$\vb F_t\circ\vb F_s=\vb F_{t+s}$, $\vb F_0=\mathrm{id}$.
+\end{definition}
+For a linear system, $\vb F_t=e^{At}$ (\cref{prop:ov-linear}). The book adds that maps are more general
+than flows: they include discontinuous and hybrid systems, and they are the natural setting for
+sampled experimental data and digital control.
+
+\paragraph{Particles in flows.} In fluid mechanics $\vb f$ is the velocity field and $\vb x$ the
+position of a tracer particle; integrating many particles shows how the fluid mixes and how a buoy or a
+pollutant spreads in the ocean \ts{2}{1}{28:26}\ts{2}{1}{29:08}. The field then depends on time, and the
+\emph{finite-time Lyapunov exponent} (FTLE) fields are the time-varying analogues of stable and
+unstable manifolds \ts{2}{1}{28:46}.
+
+\begin{secondary}[Finite-time Lyapunov exponents]
+For the flow map $\vb F_{t_0}^{t_0+T}$ of a time-dependent field, the Cauchy--Green tensor is
+$C=(D\vb F)^{\mathsf T}D\vb F$ and the FTLE is
+$\sigma_T(\vb x_0)=\frac{1}{|T|}\ln\sqrt{\lambda_{\max}(C)}$, the exponential rate at which nearby
+particles separate. Ridges of $\sigma_T$ computed forward in time ($T>0$) mark repelling structures
+(analogues of stable manifolds), backward ($T<0$) attracting ones (unstable manifolds): the Lagrangian
+coherent structures of G.~Haller.
+\end{secondary}
+
+% ------------------------------------------------------------------
+\section{Chaos}\label{sec:fu-chaos}
+
+Integrate a tight cube of initial conditions through the Lorenz system: they stay together for a
+while, then stretch, fold and mix along the whole attractor \ts{2}{1}{29:28}\ts{2}{1}{29:49}\ts{2}{1}{30:09}.
+
+\begin{definition}[New concepts: chaos, attractor, prediction horizon]
+A deterministic system is \textbf{chaotic} if it has sensitive dependence on initial conditions: nearby
+trajectories separate exponentially, at a rate given by the largest Lyapunov exponent $\lambda_1>0$, and
+mix over a bounded \textbf{attractor} (the set the trajectories approach). An initial uncertainty
+$\delta_0$ grows like $\delta_0e^{\lambda_1t}$, so a tolerance $\Delta$ is reached after the
+\textbf{prediction horizon} $t_*\approx\lambda_1^{-1}\ln(\Delta/\delta_0)$; after that only statistical
+statements are possible \ts{2}{1}{30:30}\ts{2}{1}{30:51}. From the Greek \emph{cháos}, the gaping void
+before creation.
+\end{definition}
+
+The logarithm is the bad news: improving the initial measurement by a factor 10 only adds
+$\lambda_1^{-1}\ln10$ to the horizon. Local weather (where a hurricane will go) and turbulence are
+chaotic \ts{2}{1}{30:51}\ts{2}{1}{31:11}.
+
+\begin{history}[Lorenz and the butterfly]
+Edward Lorenz (MIT) found sensitive dependence in 1961 when he restarted a weather simulation from a
+printout rounded to three decimals and the forecast diverged completely. His 1963 paper
+\emph{Deterministic nonperiodic flow} (J.\ Atmos.\ Sci.\ 20, 130--141) reduced convection to the three
+equations now named after him. The ``butterfly effect'' comes from the title of a 1972 talk at the AAAS:
+\emph{Predictability: Does the flap of a butterfly's wings in Brazil set off a tornado in Texas?}\par
+\textit{References:} E.~N.~Lorenz, \emph{The Essence of Chaos} (Univ.\ of Washington Press, 1993);
+J.~Gleick, \emph{Chaos} (1987).
+\end{history}
+
+\begin{keyformulas}
+\begin{itemize}
+  \item Fixed point $\vb f(\bar{\vb x})=0$; linearization $\Delta\dot{\vb x}=D\vb f(\bar{\vb x})\Delta\vb x$;
+        valid at hyperbolic points (Hartman--Grobman).
+  \item $\vb x(t)=Te^{\Lambda t}T^{-1}\vb x_0$: map in, advance decoupled modes, map out.
+  \item Duffing $\dot x=v$, $\dot v=x-x^3$: centres $(\pm1,0)$ with $\pm i\sqrt2$, saddle $(0,0)$ with $\pm1$.
+  \item Pitchfork $\dot x=\mu x-x^3$, Hopf $\dot r=\mu r-r^3$, $\dot\theta=\omega$: branches/cycle at $\sqrt\mu$.
+  \item Flow map $\vb F_t(\vb x_0)=\vb x_0+\int_0^t\vb f(\vb x(\tau))\dd\tau$; prediction horizon
+        $t_*\approx\lambda_1^{-1}\ln(\Delta/\delta_0)$.
+\end{itemize}
+\end{keyformulas}
+
+\section*{Exercises}
+
+\begin{exercise}[Damped Duffing]
+Add friction: $\dot v=x-x^3-\delta v$, $\delta>0$.
+\begin{enumerate}[(a)]
+  \item Compute the Jacobian at the three fixed points and classify them as a function of $\delta$
+        (stable focus or node; saddle).
+  \item Show that $E=\tfrac12v^2+V(x)$ satisfies $\dot E=-\delta v^2\le0$, and sketch the phase
+        portrait. What are the basins of attraction of the two wells?
+\end{enumerate}
+\end{exercise}
+
+\begin{exercise}[Pendulum fixed points]
+Linearize $\dot\theta=\omega$, $\dot\omega=-\sin\theta$ at $(0,0)$ and $(\pi,0)$, compute eigenvalues
+and eigenvectors, and compare with \cref{fig:ov-pendulum}. Why does Hartman--Grobman say nothing about
+the stability of $(0,0)$ by itself? What does energy conservation add?
+\end{exercise}
+
+\begin{exercise}[Hopf in Cartesian coordinates]
+Starting from \eqref{eq:fu-hopf}, derive the equations for $x=r\cos\theta$, $y=r\sin\theta$, compute
+the Jacobian at the origin, and check that its eigenvalues are $\mu\pm i\omega$. Solve the radial
+equation exactly (hint: $u=1/r^2$) and show that every $r(0)>0$ tends to $\sqrt\mu$ for $\mu>0$.
+\end{exercise}
+
+\begin{exercise}[Subcritical pitchfork]
+Study $\dot x=\mu x+x^3-x^5$. Draw the bifurcation diagram, find the saddle-node bifurcations, and
+show the hysteresis loop obtained by slowly increasing and then decreasing $\mu$.
+\end{exercise}
+
+\begin{exercise}[Flow map of a linear system]
+For $\dot{\vb x}=A\vb x$ with $A=\begin{pmatrix}-1&2\\-2&-1\end{pmatrix}$, compute $\vb F_t=e^{At}$ in
+closed form. Sample at $\Delta t$: what are the eigenvalues of $\vb F_{\Delta t}$? Check numerically
+(\texttt{scipy.linalg.expm}) and verify $\vb F_t\vb F_s=\vb F_{t+s}$.
+\end{exercise}
+
+\begin{exercise}[Prediction horizon]
+The largest Lyapunov exponent of the Lorenz system at standard parameters is $\lambda_1\approx0.906$.
+With an initial error of $10^{-6}$ and a tolerance of $1$, estimate the horizon. How much does it grow
+if the error is reduced to $10^{-12}$?
+\end{exercise}
+
+\end{paracol}
