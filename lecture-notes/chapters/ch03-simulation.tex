@@ -86,6 +86,25 @@ conditions integrated through the system: it stretches, folds and mixes over the
 starting very close end up far apart, and after long enough only a statistical description of where the
 points are is possible \ts{3}{1}{14:36}. The red points of \cref{fig:si-lorenz} reproduce this.
 
+\begin{exercise}[Lorenz fixed points]
+Find the fixed points of \eqref{eq:si-lorenz} for $\rho>1$ and compute the Jacobian at the origin.
+Show that the origin is stable for $\rho<1$ and a saddle with a one-dimensional unstable manifold for
+$\rho>1$. Show that the volume of phase space contracts at the constant rate
+$\nabla\cdot\vb f=-(\sigma+1+\beta)$, and conclude that the attractor has zero volume.
+\end{exercise}
+
+\begin{exercise}[Two nearby trajectories]
+Modify \file{ch03_lorenz.py} to integrate $\vb x_0$ and $\vb x_0+10^{-8}(1,0,0)$, and plot
+$\log\lVert\delta\vb x(t)\rVert$. Fit the slope of the linear part: compare with the largest Lyapunov
+exponent $\lambda_1\approx0.906$. Why does the curve saturate?
+\end{exercise}
+
+\begin{exercise}[Tolerance matters]
+Integrate Lorenz to $t=50$ with \texttt{rtol} $=10^{-3},10^{-6},10^{-9},10^{-12}$ and compare the final
+states. Up to which time do the trajectories agree? Relate this to the prediction horizon of
+Chapter~2.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{From continuous to discrete time}\label{sec:si-discrete}
 
@@ -148,6 +167,12 @@ $\vb x_{k+1}=(I+\Delta tA)\vb x_k$, whose eigenvalues $1\pm i\Delta t$ have modu
 $\sqrt{1+\Delta t^2}>1$: the discrete orbit spirals out, energy grows by a factor
 $(1+\Delta t^2)$ per step, while the true eigenvalues $e^{\pm i\Delta t}$ lie on the unit circle.
 \end{example}
+
+\begin{exercise}[Backward Euler]
+For $\dot{\vb x}=A\vb x$, backward Euler is $\vb x_{k+1}=(I-\Delta tA)^{-1}\vb x_k$. Compute its eigenvalues
+for the harmonic oscillator and show that it spirals \emph{inward}. Which combination of forward and
+backward Euler (the trapezoidal rule) preserves $|\mu|=1$ exactly?
+\end{exercise}
 
 % ------------------------------------------------------------------
 \section{The logistic map}\label{sec:si-logistic}
@@ -242,43 +267,6 @@ later explained by renormalization. Libchaber and Maurer saw the cascade in conv
 S.~Strogatz, \emph{Nonlinear Dynamics and Chaos}, ch.~10.
 \end{history}
 
-\begin{keyformulas}
-\begin{itemize}
-  \item Lorenz: $\dot x=\sigma(y-x)$, $\dot y=x(\rho-z)-y$, $\dot z=xy-\beta z$; $(10,28,8/3)$; $\vb x_0=(0,1,20)$.
-  \item Flow map $\vb x_{k+1}=\vb x_k+\int_{k\Delta t}^{(k+1)\Delta t}\vb f(\vb x(\tau))\dd\tau$; Euler
-        $\vb x_{k+1}=\vb x_k+\Delta t\vb f(\vb x_k)$, global error $O(\Delta t)$; RK4 $O(\Delta t^4)$.
-  \item Logistic $x_{k+1}=\beta x_k(1-x_k)$: $x^*=1-1/\beta$ stable for $1<\beta<3$; period doubling at
-        $3$, $1+\sqrt6$, \dots; chaos beyond $\approx3.57$.
-\end{itemize}
-\end{keyformulas}
-
-\section*{Exercises}
-
-\begin{exercise}[Lorenz fixed points]
-Find the fixed points of \eqref{eq:si-lorenz} for $\rho>1$ and compute the Jacobian at the origin.
-Show that the origin is stable for $\rho<1$ and a saddle with a one-dimensional unstable manifold for
-$\rho>1$. Show that the volume of phase space contracts at the constant rate
-$\nabla\cdot\vb f=-(\sigma+1+\beta)$, and conclude that the attractor has zero volume.
-\end{exercise}
-
-\begin{exercise}[Two nearby trajectories]
-Modify \file{ch03_lorenz.py} to integrate $\vb x_0$ and $\vb x_0+10^{-8}(1,0,0)$, and plot
-$\log\lVert\delta\vb x(t)\rVert$. Fit the slope of the linear part: compare with the largest Lyapunov
-exponent $\lambda_1\approx0.906$. Why does the curve saturate?
-\end{exercise}
-
-\begin{exercise}[Tolerance matters]
-Integrate Lorenz to $t=50$ with \texttt{rtol} $=10^{-3},10^{-6},10^{-9},10^{-12}$ and compare the final
-states. Up to which time do the trajectories agree? Relate this to the prediction horizon of
-Chapter~2.
-\end{exercise}
-
-\begin{exercise}[Backward Euler]
-For $\dot{\vb x}=A\vb x$, backward Euler is $\vb x_{k+1}=(I-\Delta tA)^{-1}\vb x_k$. Compute its eigenvalues
-for the harmonic oscillator and show that it spirals \emph{inward}. Which combination of forward and
-backward Euler (the trapezoidal rule) preserves $|\mu|=1$ exactly?
-\end{exercise}
-
 \begin{exercise}[Period three]
 Plot $F^3(x)-x$ for the logistic map near $\beta=1+\sqrt8\approx3.828$ and show that a pair of period-3
 orbits is born there in a saddle-node (tangent) bifurcation. Run \file{ch03_logistic.py} zoomed on
@@ -291,5 +279,15 @@ Using bisection on the multiplier of the period-$2^n$ orbit, or by reading the z
 diagram, estimate the first four period-doubling values $\beta_1=3$, $\beta_2\approx3.449$, $\beta_3$,
 $\beta_4$, and the ratios $(\beta_n-\beta_{n-1})/(\beta_{n+1}-\beta_n)$.
 \end{exercise}
+
+\begin{keyformulas}
+\begin{itemize}
+  \item Lorenz: $\dot x=\sigma(y-x)$, $\dot y=x(\rho-z)-y$, $\dot z=xy-\beta z$; $(10,28,8/3)$; $\vb x_0=(0,1,20)$.
+  \item Flow map $\vb x_{k+1}=\vb x_k+\int_{k\Delta t}^{(k+1)\Delta t}\vb f(\vb x(\tau))\dd\tau$; Euler
+        $\vb x_{k+1}=\vb x_k+\Delta t\vb f(\vb x_k)$, global error $O(\Delta t)$; RK4 $O(\Delta t^4)$.
+  \item Logistic $x_{k+1}=\beta x_k(1-x_k)$: $x^*=1-1/\beta$ stable for $1<\beta<3$; period doubling at
+        $3$, $1+\sqrt6$, \dots; chaos beyond $\approx3.57$.
+\end{itemize}
+\end{keyformulas}
 
 \end{paracol}

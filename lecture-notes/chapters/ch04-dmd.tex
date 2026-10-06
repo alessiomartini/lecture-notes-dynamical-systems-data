@@ -152,6 +152,17 @@ Unlike a Fourier transform, the frequencies are not fixed by the record length a
 \end{itemize}
 \end{keyformulas}
 
+\begin{exercise}[DMD of a linear system]
+Generate data from $\vb x_{k+1}=A\vb x_k$ with a random $A\in\R^{50\times50}$ of rank 4 (scaled so that its
+eigenvalues have modulus $\le1$). Show numerically that DMD with $r=4$ recovers the nonzero eigenvalues of
+$A$ exactly. What happens with $r=6$? With noise?
+\end{exercise}
+
+\begin{exercise}[Pseudo-inverse]
+Show that $A=X'X^\dagger$ minimizes $\lVert X'-AX\rVert_F$, and that among the minimizers it has the smallest
+Frobenius norm. Write $X^\dagger$ via the SVD.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{Extensions, applications, and a toy example}\label{sec:dmd-examples}
 
@@ -211,6 +222,12 @@ least squares attributes all the noise to $X'$ and none to $X$. Remedies are noi
 forward--backward DMD, total-least-squares DMD, optimized DMD.
 \end{remark}
 
+\begin{exercise}[Mean subtraction]
+Run DMD on the toy data plus a constant background. Show that the mean appears as a mode with
+$\lambda=1$. What happens to DMD if the mean is subtracted first? (Hint: Chen, Tu, Rowley 2012 show that
+mean-subtracted DMD reduces to a temporal DFT.)
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{DMD in practice: the cylinder wake}\label{sec:dmd-code}
 
@@ -241,6 +258,13 @@ time coefficients of different harmonics are orthogonal over a period, so the SV
 orthogonal time series, cannot mix different frequencies, and the POD modes coincide (pairwise) with the
 DMD modes. When the dynamics is non-normal or transient this fails, and DMD and POD differ.
 \end{secondary}
+
+\begin{exercise}[One real oscillation needs two modes]
+Take data $x(t)=\cos(\omega t)\,\vb f$ for a fixed spatial vector $\vb f$. What is the rank of $X$? Can
+DMD find the frequency? Now take $\vb f\cos\omega t+\vb g\sin\omega t$ with $\vb f\perp\vb g$: show that
+$r=2$ gives $\lambda=e^{\pm i\omega\Delta t}$. Relate this to the singular-value pairs of the cylinder.
+(This is the reason \file{ch04_dmd.py} uses complex data; Chapter~8 gives another cure: time delays.)
+\end{exercise}
 
 % ------------------------------------------------------------------
 \section{Compressed sensing and DMD}\label{sec:dmd-cs}
@@ -336,32 +360,6 @@ $\Phi_Y=CX'V\Sigma^{-1}W=C\Phi_X$.
 
 The code of the paper (a sparse dynamical system on a torus driving five spatial Fourier coefficients) is
 available to try different compression ratios and samplings \ts{4}{4}{29:20}\ts{4}{4}{29:40}.
-
-\section*{Exercises}
-
-\begin{exercise}[DMD of a linear system]
-Generate data from $\vb x_{k+1}=A\vb x_k$ with a random $A\in\R^{50\times50}$ of rank 4 (scaled so that its
-eigenvalues have modulus $\le1$). Show numerically that DMD with $r=4$ recovers the nonzero eigenvalues of
-$A$ exactly. What happens with $r=6$? With noise?
-\end{exercise}
-
-\begin{exercise}[Pseudo-inverse]
-Show that $A=X'X^\dagger$ minimizes $\lVert X'-AX\rVert_F$, and that among the minimizers it has the smallest
-Frobenius norm. Write $X^\dagger$ via the SVD.
-\end{exercise}
-
-\begin{exercise}[One real oscillation needs two modes]
-Take data $x(t)=\cos(\omega t)\,\vb f$ for a fixed spatial vector $\vb f$. What is the rank of $X$? Can
-DMD find the frequency? Now take $\vb f\cos\omega t+\vb g\sin\omega t$ with $\vb f\perp\vb g$: show that
-$r=2$ gives $\lambda=e^{\pm i\omega\Delta t}$. Relate this to the singular-value pairs of the cylinder.
-(This is the reason \file{ch04_dmd.py} uses complex data; Chapter~8 gives another cure: time delays.)
-\end{exercise}
-
-\begin{exercise}[Mean subtraction]
-Run DMD on the toy data plus a constant background. Show that the mean appears as a mode with
-$\lambda=1$. What happens to DMD if the mean is subtracted first? (Hint: Chen, Tu, Rowley 2012 show that
-mean-subtracted DMD reduces to a temporal DFT.)
-\end{exercise}
 
 \begin{exercise}[Left-unitary invariance]
 Verify fact 2 numerically on the toy data with $C$ the 2D FFT (normalized) and with a random orthogonal

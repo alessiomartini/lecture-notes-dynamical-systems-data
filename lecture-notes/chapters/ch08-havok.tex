@@ -89,6 +89,17 @@ For a short window ($q\,dt=0.1$) the delay vector is essentially a Taylor expans
 the modes $u_k$ look like Legendre polynomials (see \cref{sec:hv-structure}) and why the singular values decay geometrically.
 \end{secondary}
 
+\begin{exercise}[Choice of $q$ and $r$]
+Run \file{ch08_havok.py} with $q=50,100,200$ and $r=11,15,21$. How do the singular values, the fit residuals and the correlation of
+the model change? Use the Gavish--Donoho optimal hard threshold ($\approx2.858\,\sigma_{\text{med}}$ for a square-ish matrix with
+unknown noise; for a $q\times m$ matrix use their formula $\omega(\beta)$) to pick $r$ objectively.
+\end{exercise}
+
+\begin{exercise}[A bad measurement]
+Repeat the analysis with $z(t)$ instead of $x(t)$. Explain, using the symmetry $(x,y,z)\mapsto(-x,-y,z)$, why the embedded attractor
+cannot be diffeomorphic to Lorenz and what happens to the forcing.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{Chaos as an intermittently forced linear system}\label{sec:hv-model}
 
@@ -140,6 +151,12 @@ interleaved regions (the inner part of one lobe joined to the outer band of the 
 the red regions of HAVOK: two very different analyses agree \ts{8}{1}{30:42}\ts{8}{1}{31:02}\ts{8}{1}{31:43}. That the linear part
 fails somewhere is unavoidable: a finite linear model has one fixed point, Lorenz has three \ts{8}{1}{32:27}\ts{8}{1}{32:47}.
 \end{remark}
+
+\begin{exercise}[Precursor statistics]
+Using the script, define switches as sign changes of $x$ that persist, and red-flag events as upward crossings of the threshold by
+$v_r^2$. Compute the fraction of switches preceded by a flag within one revolution and the false-alarm rate, as functions of the
+threshold. Remember that $v_r(t_i)$ uses the window $[t_i,t_i+q\,dt]$: shift it to make the forecast causal.
+\end{exercise}
 
 % ------------------------------------------------------------------
 \section{Real systems: magnetic field reversal and measles}\label{sec:hv-examples}
@@ -222,34 +239,6 @@ dynamics, lobe switching included, not perfectly but far better than expected; n
 Where the forcing is active the system is genuinely nonlinear, but those are exactly the interesting regions: lobe switches,
 reversals, outbreaks \ts{8}{1}{46:10}\ts{8}{1}{46:31}.
 
-\begin{keyformulas}
-\begin{itemize}
-  \item Hankel matrix of $x(t)$ $=$ Krylov sequence $x,\K x,\K^2x,\dots$; $H=U\Sigma V^*$; low rank $\Rightarrow$ leading $u_k$ span an
-        approximately Koopman-invariant subspace.
-  \item HAVOK: $\dot{\vb v}_{1:r-1}=A\vb v_{1:r-1}+Bv_r$; $v_r$ intermittent, heavy-tailed, active before lobe switches.
-  \item $A$: sparse, tridiagonal, antisymmetric, entries $\approx$ multiples of 5 for Lorenz; modes $\approx$ Legendre polynomials.
-\end{itemize}
-\end{keyformulas}
-
-\section*{Exercises}
-
-\begin{exercise}[Choice of $q$ and $r$]
-Run \file{ch08_havok.py} with $q=50,100,200$ and $r=11,15,21$. How do the singular values, the fit residuals and the correlation of
-the model change? Use the Gavish--Donoho optimal hard threshold ($\approx2.858\,\sigma_{\text{med}}$ for a square-ish matrix with
-unknown noise; for a $q\times m$ matrix use their formula $\omega(\beta)$) to pick $r$ objectively.
-\end{exercise}
-
-\begin{exercise}[A bad measurement]
-Repeat the analysis with $z(t)$ instead of $x(t)$. Explain, using the symmetry $(x,y,z)\mapsto(-x,-y,z)$, why the embedded attractor
-cannot be diffeomorphic to Lorenz and what happens to the forcing.
-\end{exercise}
-
-\begin{exercise}[Precursor statistics]
-Using the script, define switches as sign changes of $x$ that persist, and red-flag events as upward crossings of the threshold by
-$v_r^2$. Compute the fraction of switches preceded by a flag within one revolution and the false-alarm rate, as functions of the
-threshold. Remember that $v_r(t_i)$ uses the window $[t_i,t_i+q\,dt]$: shift it to make the forecast causal.
-\end{exercise}
-
 \begin{exercise}[Legendre basis]
 Plot the first six columns of $U$ against $s\in[0,q\,dt]$ and compare them with the Legendre polynomials $P_0,\dots,P_5$ mapped to the
 window. Compute $\langle u_m,\partial_su_n\rangle$ numerically and compare with $A$.
@@ -259,5 +248,14 @@ window. Compute $\langle u_m,\partial_su_n\rangle$ numerically and compare with 
 Build the antisymmetric tridiagonal matrix with super-diagonal $-5,-10,-15,-20,25,-30,\dots$ (signs as in the script) and drive it with
 the measured $v_r$. Compare its $v_1$ with the data and with the fitted HAVOK model.
 \end{exercise}
+
+\begin{keyformulas}
+\begin{itemize}
+  \item Hankel matrix of $x(t)$ $=$ Krylov sequence $x,\K x,\K^2x,\dots$; $H=U\Sigma V^*$; low rank $\Rightarrow$ leading $u_k$ span an
+        approximately Koopman-invariant subspace.
+  \item HAVOK: $\dot{\vb v}_{1:r-1}=A\vb v_{1:r-1}+Bv_r$; $v_r$ intermittent, heavy-tailed, active before lobe switches.
+  \item $A$: sparse, tridiagonal, antisymmetric, entries $\approx$ multiples of 5 for Lorenz; modes $\approx$ Legendre polynomials.
+\end{itemize}
+\end{keyformulas}
 
 \end{paracol}

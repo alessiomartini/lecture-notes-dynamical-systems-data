@@ -124,6 +124,12 @@ The same ``lift, evolve linearly, project back'' structure returns in DMD and Ko
 lift is nonlinear.
 \end{intuition}
 
+\begin{exercise}[Pendulum fixed points]
+Linearize $\dot\theta=\omega$, $\dot\omega=-\sin\theta$ at $(0,0)$ and $(\pi,0)$, compute eigenvalues
+and eigenvectors, and compare with \cref{fig:ov-pendulum}. Why does Hartman--Grobman say nothing about
+the stability of $(0,0)$ by itself? What does energy conservation add?
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{The Duffing oscillator and invariant manifolds}\label{sec:fu-duffing}
 
@@ -248,6 +254,16 @@ fold back (as in a bounded attractor) and you get \emph{stretching and folding}:
 about chaos.
 \end{intuition}
 
+\begin{exercise}[Damped Duffing]
+Add friction: $\dot v=x-x^3-\delta v$, $\delta>0$.
+\begin{enumerate}[(a)]
+  \item Compute the Jacobian at the three fixed points and classify them as a function of $\delta$
+        (stable focus or node; saddle).
+  \item Show that $E=\tfrac12v^2+V(x)$ satisfies $\dot E=-\delta v^2\le0$, and sketch the phase
+        portrait. What are the basins of attraction of the two wells?
+\end{enumerate}
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{Bifurcations}\label{sec:fu-bifurcations}
 
@@ -310,6 +326,17 @@ This is a cartoon of what is a whole graduate course: the classification of bifu
 transcritical, pitchfork, Hopf, \dots) and normal forms \ts{2}{1}{24:40}.
 \end{remark}
 
+\begin{exercise}[Hopf in Cartesian coordinates]
+Starting from \eqref{eq:fu-hopf}, derive the equations for $x=r\cos\theta$, $y=r\sin\theta$, compute
+the Jacobian at the origin, and check that its eigenvalues are $\mu\pm i\omega$. Solve the radial
+equation exactly (hint: $u=1/r^2$) and show that every $r(0)>0$ tends to $\sqrt\mu$ for $\mu>0$.
+\end{exercise}
+
+\begin{exercise}[Subcritical pitchfork]
+Study $\dot x=\mu x+x^3-x^5$. Draw the bifurcation diagram, find the saddle-node bifurcations, and
+show the hysteresis loop obtained by slowly increasing and then decreasing $\mu$.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{Discrete-time systems and the flow map}\label{sec:fu-discrete}
 
@@ -352,6 +379,12 @@ particles separate. Ridges of $\sigma_T$ computed forward in time ($T>0$) mark r
 coherent structures of G.~Haller.
 \end{secondary}
 
+\begin{exercise}[Flow map of a linear system]
+For $\dot{\vb x}=A\vb x$ with $A=\begin{pmatrix}-1&2\\-2&-1\end{pmatrix}$, compute $\vb F_t=e^{At}$ in
+closed form. Sample at $\Delta t$: what are the eigenvalues of $\vb F_{\Delta t}$? Check numerically
+(\texttt{scipy.linalg.expm}) and verify $\vb F_t\vb F_s=\vb F_{t+s}$.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{Chaos}\label{sec:fu-chaos}
 
@@ -382,6 +415,12 @@ equations now named after him. The ``butterfly effect'' comes from the title of 
 J.~Gleick, \emph{Chaos} (1987).
 \end{history}
 
+\begin{exercise}[Prediction horizon]
+The largest Lyapunov exponent of the Lorenz system at standard parameters is $\lambda_1\approx0.906$.
+With an initial error of $10^{-6}$ and a tolerance of $1$, estimate the horizon. How much does it grow
+if the error is reduced to $10^{-12}$?
+\end{exercise}
+
 \begin{keyformulas}
 \begin{itemize}
   \item Fixed point $\vb f(\bar{\vb x})=0$; linearization $\Delta\dot{\vb x}=D\vb f(\bar{\vb x})\Delta\vb x$;
@@ -393,46 +432,5 @@ J.~Gleick, \emph{Chaos} (1987).
         $t_*\approx\lambda_1^{-1}\ln(\Delta/\delta_0)$.
 \end{itemize}
 \end{keyformulas}
-
-\section*{Exercises}
-
-\begin{exercise}[Damped Duffing]
-Add friction: $\dot v=x-x^3-\delta v$, $\delta>0$.
-\begin{enumerate}[(a)]
-  \item Compute the Jacobian at the three fixed points and classify them as a function of $\delta$
-        (stable focus or node; saddle).
-  \item Show that $E=\tfrac12v^2+V(x)$ satisfies $\dot E=-\delta v^2\le0$, and sketch the phase
-        portrait. What are the basins of attraction of the two wells?
-\end{enumerate}
-\end{exercise}
-
-\begin{exercise}[Pendulum fixed points]
-Linearize $\dot\theta=\omega$, $\dot\omega=-\sin\theta$ at $(0,0)$ and $(\pi,0)$, compute eigenvalues
-and eigenvectors, and compare with \cref{fig:ov-pendulum}. Why does Hartman--Grobman say nothing about
-the stability of $(0,0)$ by itself? What does energy conservation add?
-\end{exercise}
-
-\begin{exercise}[Hopf in Cartesian coordinates]
-Starting from \eqref{eq:fu-hopf}, derive the equations for $x=r\cos\theta$, $y=r\sin\theta$, compute
-the Jacobian at the origin, and check that its eigenvalues are $\mu\pm i\omega$. Solve the radial
-equation exactly (hint: $u=1/r^2$) and show that every $r(0)>0$ tends to $\sqrt\mu$ for $\mu>0$.
-\end{exercise}
-
-\begin{exercise}[Subcritical pitchfork]
-Study $\dot x=\mu x+x^3-x^5$. Draw the bifurcation diagram, find the saddle-node bifurcations, and
-show the hysteresis loop obtained by slowly increasing and then decreasing $\mu$.
-\end{exercise}
-
-\begin{exercise}[Flow map of a linear system]
-For $\dot{\vb x}=A\vb x$ with $A=\begin{pmatrix}-1&2\\-2&-1\end{pmatrix}$, compute $\vb F_t=e^{At}$ in
-closed form. Sample at $\Delta t$: what are the eigenvalues of $\vb F_{\Delta t}$? Check numerically
-(\texttt{scipy.linalg.expm}) and verify $\vb F_t\vb F_s=\vb F_{t+s}$.
-\end{exercise}
-
-\begin{exercise}[Prediction horizon]
-The largest Lyapunov exponent of the Lorenz system at standard parameters is $\lambda_1\approx0.906$.
-With an initial error of $10^{-6}$ and a tolerance of $1$, estimate the horizon. How much does it grow
-if the error is reduced to $10^{-12}$?
-\end{exercise}
 
 \end{paracol}

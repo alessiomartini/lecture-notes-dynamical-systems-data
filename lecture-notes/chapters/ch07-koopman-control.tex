@@ -79,6 +79,20 @@ tilts up until it does \ts{7}{2}{3:30}\ts{7}{2}{3:51}. Indeed the eigenvector of
 $(0,\,\frac{\lambda}{\lambda-2\mu},\,1)$, so the green plane is $y_2=\frac{\lambda}{\lambda-2\mu}y_3$, which tends to
 $y_2=y_3$ for $|\lambda|\gg|\mu|$.
 
+\begin{exercise}[Which systems close?]
+Decide whether a finite Koopman-invariant subspace containing the state exists, and find it if so:
+(a) $\dot x_1=\mu x_1$, $\dot x_2=\lambda(x_2-x_1^3)$;
+(b) $\dot x_1=\mu x_1$, $\dot x_2=\lambda x_2+x_1x_2$;
+(c) $\dot x=x-x^3$.
+For (b), consider the observable $x_2e^{-x_1/\mu}$.
+\end{exercise}
+
+\begin{exercise}[Slow subspace]
+Compute the eigenvectors of $K$ for the slow-manifold system and show that the slow (green) subspace is
+$y_2=\frac{\lambda}{\lambda-2\mu}y_3$. Plot its intersection with $y_3=y_1^2$ for $\lambda=-1,-10,-100$ ($\mu=-0.1$) and
+compare with $y_2=y_1^2$.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{Koopman operator optimal control}\label{sec:kc-lqr}
 
@@ -122,6 +136,12 @@ $-c_3x_1^2$ cancels part of $-\lambda x_1^2$, so it cooperates with the slow man
 (\cref{sec:ko-control}).
 \end{intuition}
 
+\begin{exercise}[Cost versus initial condition]
+Modify \file{ch07_koopman_lqr.py} to compute the ratio of the two costs on a grid of initial conditions in
+$[-5,5]^2$ and plot it. Where does the Koopman controller help most? Does the linearized controller ever fail to
+stabilize?
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{When finite closure is impossible}\label{sec:kc-limits}
 
@@ -159,6 +179,12 @@ $y_k=x^k$, $\dot y_k=kx^{k-1}\dot x=ky_{k+1}$: $K$ has $1,2,3,\dots$ on the supe
 $0.95$, $1.72$, $2.85$, $4.07$ for $N=1,2,4,8,16$, against the exact $5$: the truncation is the Taylor
 polynomial of $x_0/(1-x_0t)$ in $t$, which converges for $t<2$, ever more slowly near the singularity.
 
+\begin{exercise}[Logistic-map Koopman matrix]
+Write the first four rows of $K$ in the basis $1,x,x^2,\dots,x^8$ for the logistic map. Truncate to the first
+$N$ monomials, iterate from $x_0=0.3$ for $r=2.5$ (a stable fixed point) and $r=3.9$ (chaos), and compare with
+the true orbit.
+\end{exercise}
+
 \begin{keyformulas}
 \begin{itemize}
   \item Closure with the state: $\vb f\in\operatorname{span}\vb y$ and $\nabla g_j\cdot\vb f\in\operatorname{span}\vb y$;
@@ -167,33 +193,5 @@ polynomial of $x_0/(1-x_0t)$ in $t$, which converges for $t<2$, ever more slowly
   \item Obstruction: several fixed points, limit cycles, chaos $\Rightarrow$ no finite closure containing $\vb x$.
 \end{itemize}
 \end{keyformulas}
-
-\section*{Exercises}
-
-\begin{exercise}[Which systems close?]
-Decide whether a finite Koopman-invariant subspace containing the state exists, and find it if so:
-(a) $\dot x_1=\mu x_1$, $\dot x_2=\lambda(x_2-x_1^3)$;
-(b) $\dot x_1=\mu x_1$, $\dot x_2=\lambda x_2+x_1x_2$;
-(c) $\dot x=x-x^3$.
-For (b), consider the observable $x_2e^{-x_1/\mu}$.
-\end{exercise}
-
-\begin{exercise}[Slow subspace]
-Compute the eigenvectors of $K$ for the slow-manifold system and show that the slow (green) subspace is
-$y_2=\frac{\lambda}{\lambda-2\mu}y_3$. Plot its intersection with $y_3=y_1^2$ for $\lambda=-1,-10,-100$ ($\mu=-0.1$) and
-compare with $y_2=y_1^2$.
-\end{exercise}
-
-\begin{exercise}[Cost versus initial condition]
-Modify \file{ch07_koopman_lqr.py} to compute the ratio of the two costs on a grid of initial conditions in
-$[-5,5]^2$ and plot it. Where does the Koopman controller help most? Does the linearized controller ever fail to
-stabilize?
-\end{exercise}
-
-\begin{exercise}[Logistic-map Koopman matrix]
-Write the first four rows of $K$ in the basis $1,x,x^2,\dots,x^8$ for the logistic map. Truncate to the first
-$N$ monomials, iterate from $x_0=0.3$ for $r=2.5$ (a stable fixed point) and $r=3.9$ (chaos), and compare with
-the true orbit.
-\end{exercise}
 
 \end{paracol}

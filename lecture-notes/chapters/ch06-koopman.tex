@@ -104,6 +104,18 @@ These are the coordinates $\vb z=T^{-1}\vb x$ of \cref{prop:ov-linear}. Koopman 
 generalize eigenvector coordinates to nonlinear systems.
 \end{example}
 
+\begin{exercise}[Koopman operator of a map]
+For the linear map $x_{k+1}=ax_k$ find all polynomial eigenfunctions of $\K$ and their eigenvalues. For the
+doubling map $x_{k+1}=2x_k\bmod1$ on $[0,1)$, show that $e^{2\pi i\,2^nx}$ is mapped by $\K$ to $e^{2\pi i2^{n+1}x}$:
+$\K$ is a shift on Fourier modes, with no eigenfunction other than constants in $L^2$.
+\end{exercise}
+
+\begin{exercise}[Laurent series]
+Insert $\varphi(x)=\sum_{k=-\infty}^{\infty}c_kx^k$ into \eqref{eq:ko-pde} for $f(x)=x^2$, derive the recursion for
+the coefficients, and show that the solution with $\lambda=1$ is $e^{-1/x}$. What are the eigenfunctions for
+other $\lambda$?
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{Two examples: closure and non-closure}\label{sec:ko-examples}
 
@@ -209,6 +221,12 @@ front. ``You will get garbage models if you don't cross validate'' \ts{6}{2}{13:
 Sparse methods are parsimonious by construction \ts{6}{2}{14:48}.
 \end{intuition}
 
+\begin{exercise}[Eigenfunctions of the slow-manifold system]
+Verify that $x_2-\frac{\lambda}{\lambda-2\mu}x_1^2$ is an eigenfunction of \eqref{eq:ko-slow}. Find the eigenvectors
+of $K$ and relate them to the eigenfunctions. Then run the EDMD part of \file{ch06_koopman.py} with monomials up
+to degree 4 and 5: which spurious eigenvalues disappear?
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{Koopman and control}\label{sec:ko-control}
 
@@ -248,6 +266,12 @@ the method stabilizes coordinated swarms of drifters \ts{6}{3}{12:25}\ts{6}{3}{1
 Other Koopman-control work: Koopman Kalman filters (A.~Surana), model predictive control on EDMD models (M.~Korda,
 I.~Mezi\'c), also for power-grid stabilization, and switching between Koopman models built for fixed
 control values (S.~Peitz and co-workers) \ts{6}{3}{13:49}\ts{6}{3}{14:11}\ts{6}{3}{14:32}.
+
+\begin{exercise}[Energy as an eigenfunction]
+Show that for any Hamiltonian system $H$ is a Koopman eigenfunction with $\lambda=0$, and so is any function of
+$H$. Write \eqref{eq:ko-control} for the pendulum with a torque $u$ and derive the energy-pumping law
+$u=-k\,\dot\theta\,(H-H^*)$ from $\frac{\mathrm d}{\mathrm dt}\frac12(H-H^*)^2\le0$.
+\end{exercise}
 
 % ------------------------------------------------------------------
 \section{Continuous spectrum and multiscale systems}\label{sec:ko-continuous}
@@ -314,6 +338,12 @@ Summary: regression methods (DMD, EDMD, sparse eigenfunctions, networks) find co
 system is linear; the coordinates are a one-time cost that pays off downstream in control; open questions are
 scaling, where it works, and whether the up-front cost is worth it \ts{6}{5}{3:08}\ts{6}{5}{3:29}\ts{6}{5}{4:10}.
 
+\begin{exercise}[Spectrum of a signal]
+Compute the power spectrum of $x(t)$ for Lorenz (from \file{ch03_lorenz.py}) and for the pendulum at two energies.
+Compare the broadband Lorenz spectrum with the lines of the pendulum. What happens to the pendulum spectrum if
+the record is an ensemble over many energies?
+\end{exercise}
+
 \begin{keyformulas}
 \begin{itemize}
   \item $\K g=g\circ\vb F$ (linear); generator $\mathcal Lg=\nabla g\cdot\vb f$.
@@ -324,37 +354,5 @@ scaling, where it works, and whether the up-front cost is worth it \ts{6}{5}{3:0
   \item Pendulum: $\omega(E)=\pi/2K(k)$, continuous spectrum; action-angle variables.
 \end{itemize}
 \end{keyformulas}
-
-\section*{Exercises}
-
-\begin{exercise}[Koopman operator of a map]
-For the linear map $x_{k+1}=ax_k$ find all polynomial eigenfunctions of $\K$ and their eigenvalues. For the
-doubling map $x_{k+1}=2x_k\bmod1$ on $[0,1)$, show that $e^{2\pi i\,2^nx}$ is mapped by $\K$ to $e^{2\pi i2^{n+1}x}$:
-$\K$ is a shift on Fourier modes, with no eigenfunction other than constants in $L^2$.
-\end{exercise}
-
-\begin{exercise}[Laurent series]
-Insert $\varphi(x)=\sum_{k=-\infty}^{\infty}c_kx^k$ into \eqref{eq:ko-pde} for $f(x)=x^2$, derive the recursion for
-the coefficients, and show that the solution with $\lambda=1$ is $e^{-1/x}$. What are the eigenfunctions for
-other $\lambda$?
-\end{exercise}
-
-\begin{exercise}[Eigenfunctions of the slow-manifold system]
-Verify that $x_2-\frac{\lambda}{\lambda-2\mu}x_1^2$ is an eigenfunction of \eqref{eq:ko-slow}. Find the eigenvectors
-of $K$ and relate them to the eigenfunctions. Then run the EDMD part of \file{ch06_koopman.py} with monomials up
-to degree 4 and 5: which spurious eigenvalues disappear?
-\end{exercise}
-
-\begin{exercise}[Energy as an eigenfunction]
-Show that for any Hamiltonian system $H$ is a Koopman eigenfunction with $\lambda=0$, and so is any function of
-$H$. Write \eqref{eq:ko-control} for the pendulum with a torque $u$ and derive the energy-pumping law
-$u=-k\,\dot\theta\,(H-H^*)$ from $\frac{\mathrm d}{\mathrm dt}\frac12(H-H^*)^2\le0$.
-\end{exercise}
-
-\begin{exercise}[Spectrum of a signal]
-Compute the power spectrum of $x(t)$ for Lorenz (from \file{ch03_lorenz.py}) and for the pendulum at two energies.
-Compare the broadband Lorenz spectrum with the lines of the pendulum. What happens to the pendulum spectrum if
-the record is an ensemble over many energies?
-\end{exercise}
 
 \end{paracol}

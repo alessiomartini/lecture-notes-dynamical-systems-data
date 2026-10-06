@@ -99,6 +99,13 @@ derivatives. Alternatives: Savitzky--Golay filters, local polynomial fits (as in
 (integral) form of SINDy, which avoids derivatives altogether.
 \end{secondary}
 
+\begin{exercise}[Noise and threshold]
+Add Gaussian noise of standard deviation $\eta$ to $X$ in \file{ch05_sindy.py} before differentiating.
+For $\eta=0.01,0.1,1$, find the range of $\lambda$ for which the correct structure is found. Replace the
+finite differences by a Savitzky--Golay filter (\texttt{scipy.signal.savgol\_filter} with \texttt{deriv=1})
+and compare.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{The cylinder wake: rediscovering the mean-field model}\label{sec:si-cylinder}
 
@@ -143,6 +150,12 @@ eliminating the fast variable: adiabatic elimination.
 must start off the attractor, e.g.\ from the mean flow, and watch the system fall back \ts{5}{1}{14:12}.
 General strategy: to identify the dynamics near an attractor, kick the system off it and see how it
 returns \ts{5}{1}{14:32}.
+
+\begin{exercise}[Mean-field model]
+Simulate \eqref{eq:si-meanfield} with $\mu=0.1$, $\omega=1$, $A=-0.1$, $\lambda=10$ from an initial
+condition on the slow manifold, and from one off it ($z$ far from $x^2+y^2$). Run SINDy with polynomials up
+to order 3 on both data sets: which one gives the quadratic model, which one the cubic normal form?
+\end{exercise}
 
 % ------------------------------------------------------------------
 \section{Extensions: parameters, forcing, delays, control}\label{sec:si-extensions}
@@ -205,6 +218,17 @@ embedding theorem appeared in \emph{Detecting strange attractors in turbulence} 
 \textit{References:} D.~Ruelle, \emph{Chance and Chaos} (Princeton, 1991); the papers cited.
 \end{history}
 
+\begin{exercise}[Parametrized logistic map]
+Generate logistic-map data for $\mu\in\{2.5,2.75,\dots,3.95\}$ (10 values), build a library of monomials in
+$(x,\mu)$ up to order 4, and fit $x_{k+1}$ (a map: no derivative needed). Use the model to draw the
+bifurcation diagram on $[2.5,4]$ and compare with \cref{fig:si-logistic}.
+\end{exercise}
+
+\begin{exercise}[Delay embedding]
+Using only $x(t)$ from \file{ch03_lorenz.py}, build $H$ with $p=100$ and plot $v_1,v_2,v_3$ (columns of
+$V$). How many singular values are significant? Compare the picture with the Lorenz attractor.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{PDE-FIND: discovering partial differential equations}\label{sec:si-pdefind}
 
@@ -256,6 +280,12 @@ Kuramoto--Sivashinsky, reaction--diffusion, vorticity equation of Navier--Stokes
 coefficients are badly underestimated (52\% error) \ts{5}{2}{9:33}. Noise complicates everything through the
 derivatives; next steps are real data and latent variables \ts{5}{2}{9:55}\ts{5}{2}{10:15}.
 
+\begin{exercise}[Soliton ambiguity]
+Generate one KdV soliton and run \file{ch05_pdefind.py} with a library containing $u_{xxx}$ and $uu_x$.
+Explain why the regression cannot distinguish $u_t=-cu_x$ from $u_t=-6uu_x-u_{xxx}$, and verify that both
+are satisfied (choose the soliton normalization accordingly).
+\end{exercise}
+
 \begin{keyformulas}
 \begin{itemize}
   \item SINDy: $\dot X\approx\Theta(X)\Xi$, $\Xi$ sparse (STLSQ or LASSO), one regression per variable.
@@ -265,37 +295,5 @@ derivatives; next steps are real data and latent variables \ts{5}{2}{9:55}\ts{5}
   \item PDE-FIND: $U_t\approx\Theta(U,U_x,U_{xx},\dots)\boldsymbol\xi$, STRidge; derivatives are the hard part.
 \end{itemize}
 \end{keyformulas}
-
-\section*{Exercises}
-
-\begin{exercise}[Noise and threshold]
-Add Gaussian noise of standard deviation $\eta$ to $X$ in \file{ch05_sindy.py} before differentiating.
-For $\eta=0.01,0.1,1$, find the range of $\lambda$ for which the correct structure is found. Replace the
-finite differences by a Savitzky--Golay filter (\texttt{scipy.signal.savgol\_filter} with \texttt{deriv=1})
-and compare.
-\end{exercise}
-
-\begin{exercise}[Mean-field model]
-Simulate \eqref{eq:si-meanfield} with $\mu=0.1$, $\omega=1$, $A=-0.1$, $\lambda=10$ from an initial
-condition on the slow manifold, and from one off it ($z$ far from $x^2+y^2$). Run SINDy with polynomials up
-to order 3 on both data sets: which one gives the quadratic model, which one the cubic normal form?
-\end{exercise}
-
-\begin{exercise}[Parametrized logistic map]
-Generate logistic-map data for $\mu\in\{2.5,2.75,\dots,3.95\}$ (10 values), build a library of monomials in
-$(x,\mu)$ up to order 4, and fit $x_{k+1}$ (a map: no derivative needed). Use the model to draw the
-bifurcation diagram on $[2.5,4]$ and compare with \cref{fig:si-logistic}.
-\end{exercise}
-
-\begin{exercise}[Soliton ambiguity]
-Generate one KdV soliton and run \file{ch05_pdefind.py} with a library containing $u_{xxx}$ and $uu_x$.
-Explain why the regression cannot distinguish $u_t=-cu_x$ from $u_t=-6uu_x-u_{xxx}$, and verify that both
-are satisfied (choose the soliton normalization accordingly).
-\end{exercise}
-
-\begin{exercise}[Delay embedding]
-Using only $x(t)$ from \file{ch03_lorenz.py}, build $H$ with $p=100$ and plot $v_1,v_2,v_3$ (columns of
-$V$). How many singular values are significant? Compare the picture with the Lorenz attractor.
-\end{exercise}
 
 \end{paracol}

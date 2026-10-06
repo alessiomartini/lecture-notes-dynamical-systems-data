@@ -205,6 +205,25 @@ state determines the future. It fails for $\dot x=\sqrt{|x|}$ at $x=0$ (not Lips
 and $x(t)=t^2/4$ start from $x(0)=0$.
 \end{secondary}
 
+\begin{exercise}[Non-autonomous to autonomous]
+Show that $\dot{\vb x}=\vb f(\vb x,t)$, $\vb x\in\R^n$, can be written as an autonomous system in
+$\R^{n+1}$. Apply this to the forced oscillator $\ddot x+\gamma\dot x+\omega_0^2x=F\cos\Omega t$, and
+then show that, because the forcing is periodic, the extra coordinate can be taken on a circle
+$S^1$ instead of $\R$. What is the dimension of the state space of the forced pendulum?
+\end{exercise}
+
+\begin{exercise}[Eigenvalues of the damped oscillator]
+Write $\ddot x+2\zeta\omega_0\dot x+\omega_0^2x=0$ as $\dot{\vb x}=A\vb x$.
+\begin{enumerate}[(a)]
+  \item Compute the eigenvalues of $A$ and classify the motion for $0<\zeta<1$, $\zeta=1$, $\zeta>1$.
+  \item For $\zeta=1$ the matrix is not diagonalizable: compute $e^{At}$ anyway (Jordan form) and
+        find the $te^{-\omega_0t}$ term.
+  \item Sample the underdamped solution with step $\Delta t$: give the eigenvalues $\mu_\pm$ of the
+        discrete-time map and show that $|\mu_\pm|<1$. Where do they lie in the complex plane as
+        $\Delta t$ grows?
+\end{enumerate}
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{From first principles to data}\label{sec:ov-data}
 
@@ -397,6 +416,20 @@ obtained by inverting $C$. One instead solves an optimization problem: least squ
 (compressed sensing, Chapter~4 of these notes).
 \end{example}
 
+\begin{exercise}[How big is the weather?]
+Estimate the dimension $n$ of the state of a global weather model with a horizontal resolution of
+$1\,$km, $100$ vertical levels and $6$ variables per cell (three velocity components, temperature,
+pressure, humidity); the Earth's surface is about $5.1\times10^8\,\mathrm{km}^2$. How many bytes does
+one snapshot take in double precision? How many snapshots of this size fit in a petabyte?
+\end{exercise}
+
+\begin{exercise}[Superposition]
+Show that the set of solutions of $\dot{\vb x}=A\vb x$ is a vector space. Then show, with an explicit
+counterexample, that for $\dot x=-x+x^2$ the sum of two solutions is not a solution. Solve this
+equation exactly (separation of variables or the substitution $\varphi=1/x$) and discuss which initial
+conditions blow up in finite time.
+\end{exercise}
+
 % ------------------------------------------------------------------
 \section{What models are for}\label{sec:ov-uses}
 
@@ -520,7 +553,15 @@ statistical face of Noether's theorem.
 \paragraph{Homework from the lecture.} Brunton closes with an invitation \ts{1}{2}{17:15}: pick a system
 you care about (the brain, an epidemic, the climate) and ask what its state vector is, what its
 controls and parameters are, what rules might govern its evolution, what can be measured, and where it
-sits among the challenges and the uses \ts{1}{2}{17:35}. The first exercise below does exactly this.
+sits among the challenges and the uses \ts{1}{2}{17:35}. The exercise at the end of the chapter does exactly this.
+
+\begin{exercise}[Energy constraint as a linear constraint]
+Suppose you look for a model of a one-degree-of-freedom conservative system, $\dot q=p$,
+$\dot p=\sum_{k=0}^{3}\xi_kq^k$, as a linear combination of monomials. Show that energy conservation is
+automatic for any $\boldsymbol\xi$, and write the energy. Now allow also $\dot p$ to contain a term
+$\xi_4p$: which value of $\xi_4$ does energy conservation impose? Relate this to the last intuition box
+of \cref{sec:ov-techniques}.
+\end{exercise}
 
 \begin{keyformulas}
 \begin{itemize}
@@ -538,6 +579,8 @@ sits among the challenges and the uses \ts{1}{2}{17:35}. The first exercise belo
 % ------------------------------------------------------------------
 \section*{Exercises}
 
+Standalone exercises follow the section they practise; connected or integrative ones, like this one, are at the end.
+
 \begin{exercise}[Anatomy of a system of your choice]\label{ex:ov-anatomy}
 Choose a system: (a) an SIR epidemic in a city; (b) a wind turbine in a turbulent wind; (c) the
 temperature of a room heated by a thermostat. For each one:
@@ -549,47 +592,6 @@ temperature of a room heated by a thermostat. For each one:
   \item say which challenges of \cref{sec:ov-challenges} apply, and which use of
         \cref{sec:ov-uses} you would care most about.
 \end{enumerate}
-\end{exercise}
-
-\begin{exercise}[Non-autonomous to autonomous]
-Show that $\dot{\vb x}=\vb f(\vb x,t)$, $\vb x\in\R^n$, can be written as an autonomous system in
-$\R^{n+1}$. Apply this to the forced oscillator $\ddot x+\gamma\dot x+\omega_0^2x=F\cos\Omega t$, and
-then show that, because the forcing is periodic, the extra coordinate can be taken on a circle
-$S^1$ instead of $\R$. What is the dimension of the state space of the forced pendulum?
-\end{exercise}
-
-\begin{exercise}[Eigenvalues of the damped oscillator]
-Write $\ddot x+2\zeta\omega_0\dot x+\omega_0^2x=0$ as $\dot{\vb x}=A\vb x$.
-\begin{enumerate}[(a)]
-  \item Compute the eigenvalues of $A$ and classify the motion for $0<\zeta<1$, $\zeta=1$, $\zeta>1$.
-  \item For $\zeta=1$ the matrix is not diagonalizable: compute $e^{At}$ anyway (Jordan form) and
-        find the $te^{-\omega_0t}$ term.
-  \item Sample the underdamped solution with step $\Delta t$: give the eigenvalues $\mu_\pm$ of the
-        discrete-time map and show that $|\mu_\pm|<1$. Where do they lie in the complex plane as
-        $\Delta t$ grows?
-\end{enumerate}
-\end{exercise}
-
-\begin{exercise}[How big is the weather?]
-Estimate the dimension $n$ of the state of a global weather model with a horizontal resolution of
-$1\,$km, $100$ vertical levels and $6$ variables per cell (three velocity components, temperature,
-pressure, humidity); the Earth's surface is about $5.1\times10^8\,\mathrm{km}^2$. How many bytes does
-one snapshot take in double precision? How many snapshots of this size fit in a petabyte?
-\end{exercise}
-
-\begin{exercise}[Superposition]
-Show that the set of solutions of $\dot{\vb x}=A\vb x$ is a vector space. Then show, with an explicit
-counterexample, that for $\dot x=-x+x^2$ the sum of two solutions is not a solution. Solve this
-equation exactly (separation of variables or the substitution $\varphi=1/x$) and discuss which initial
-conditions blow up in finite time.
-\end{exercise}
-
-\begin{exercise}[Energy constraint as a linear constraint]
-Suppose you look for a model of a one-degree-of-freedom conservative system, $\dot q=p$,
-$\dot p=\sum_{k=0}^{3}\xi_kq^k$, as a linear combination of monomials. Show that energy conservation is
-automatic for any $\boldsymbol\xi$, and write the energy. Now allow also $\dot p$ to contain a term
-$\xi_4p$: which value of $\xi_4$ does energy conservation impose? Relate this to the last intuition box
-of \cref{sec:ov-techniques}.
 \end{exercise}
 
 \end{paracol}
