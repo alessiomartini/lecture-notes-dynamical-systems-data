@@ -2,8 +2,7 @@
 
 ## Status (6 Oct 2026)
 - Setup done: transcripts of all 24 videos, book downloaded, skeleton from the Mehrling repo.
-- All 8 chapters written and checked (scripts in code/, figures in lecture-notes/figures/). Next: read Alessio's 
-ote{} annotations; possible appendix (video -> chapter -> book map).
+- All 8 chapters written and checked (scripts in code/, figures in lecture-notes/figures/). Next: read Alessio's `\note{}` annotations; possible appendix (video -> chapter -> book map).
 - GitHub: private repo alessiomartini/lecture-notes-dynamical-systems-data.
 
 ## Ideas
