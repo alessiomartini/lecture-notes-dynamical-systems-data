@@ -1,0 +1,199 @@
+% !TEX root = ../main.tex
+\chapter{Koopman Observable Subspaces and Control}\label{ch:koopmancontrol}
+\begin{paracol}{2}
+
+\begin{sources}
+\begin{tabularx}{\linewidth}{@{}V l L@{}}
+\toprule
+\textbf{Video} & \textbf{Length} & \textbf{Content}\\
+\midrule
+\seg{7}{1}{V7.1 Koopman Observable Subspaces \& Finite Linear Representations of Nonlinear Dynamics for Control} & 31:31 & Koopman operator and invariant subspaces; the slow-manifold example; eigenfunctions from left eigenvectors; Koopman operator optimal control; when finite closure including the state is impossible (multiple fixed points); logistic map and $\dot x=x^2$; truncations.\\
+\seg{7}{2}{V7.2 Koopman Observable Subspaces \& Nonlinearization} & 4:38 & The 3D picture: initial-condition paraboloid, slow-manifold sheet, slow Koopman subspace.\\
+\seg{7}{3}{V7.3 Koopman Operator Optimal Control} & 10:18 & The code: LQR on the linearization versus LQR on the Koopman system; the nonlinear gain; one third of the cost.\\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+\textbf{Transcripts} \file{materials/transcripts/C07-V0*.txt}.
+\textbf{Book} Sec.~7.4; Sec.~8.4 (LQR).
+\textbf{Paper} S.~L.~Brunton, B.~W.~Brunton, J.~L.~Proctor, J.~N.~Kutz, \emph{Koopman invariant subspaces and finite
+linear representations of nonlinear dynamical systems for control}, PLoS ONE 11 (2016) e0150171.
+\textbf{Code} \file{code/ch07_koopman_lqr.py}.
+\textbf{Order} In the playlist these videos are numbers 17, 19 and 20 (the HAVOK video 18 sits between them).
+\end{sources}
+
+\section*{Motivation}
+\Cref{ch:koopman} sketched the program; this chapter, built on one paper, asks the precise question: when does a
+nonlinear system admit a \emph{finite-dimensional, exact} linear representation that \emph{also contains the
+state itself}? When it does, linear optimal control applies verbatim and produces a nonlinear optimal
+controller \ts{7}{1}{0:08}\ts{7}{1}{0:30}. The answer is ``rarely'', and the reason is topological.
+
+% ------------------------------------------------------------------
+\section{Koopman invariant subspaces that contain the state}\label{sec:kc-subspaces}
+
+Recap \ts{7}{1}{0:51}--\ts{7}{1}{6:45}: for $\dot{\vb x}=\vb f(\vb x)$ with flow map $\vb F_t$, the Koopman operator
+$\K_tg=g\circ\vb F_t$ is linear and infinite dimensional; in continuous time $\dot g=\mathcal Kg$ with the
+infinitesimal generator. Interest revived with Mezi\'c (2005) and with the 2009--2010 links to fluid data
+\ts{7}{1}{1:53}\ts{7}{1}{2:14}.
+
+\paragraph{The picture.} Measure $m$ observables $\vb y=\vb g(\vb x)$ (e.g.\ $x_1$, $x_1^2$, $x_2x_3$). We want a
+matrix $K$ with $\vb y_{k+1}=K\vb y_k$ whenever $\vb x_{k+1}=\vb F(\vb x_k)$ \ts{7}{1}{7:06}\ts{7}{1}{7:47}. This is
+possible exactly when the span of $\vb g$ is a \emph{Koopman-invariant subspace}; eigenfunctions span such
+subspaces, but they are hard to find \ts{7}{1}{8:08}\ts{7}{1}{8:49}\ts{7}{1}{9:09}. For control we also want the state
+$\vb x$ itself among the observables, since the cost penalizes $\vb x$ \ts{7}{1}{9:30}\ts{7}{1}{9:50}.
+
+\begin{proposition}[What closure with the state requires]\label{prop:kc-closure}
+Let $\vb y=(\vb x,g_{n+1}(\vb x),\dots,g_m(\vb x))$ satisfy $\dot{\vb y}=K\vb y$. Then
+\begin{enumerate}[(i)]
+  \item every component of $\vb f$ lies in the span of $\vb y$: $\vb f(\vb x)=K_{1:n,:}\,\vb y(\vb x)$;
+  \item the derivatives $\nabla g_j\cdot\vb f$ of the added observables lie in the span too
+        \ts{7}{1}{21:11}\ts{7}{1}{21:31}\ts{7}{1}{22:12};
+  \item the left eigenvectors $\vb c$ of $K$, $\vb c^{\mathsf T}K=\lambda\vb c^{\mathsf T}$, give Koopman
+        eigenfunctions $\varphi=\vb c^{\mathsf T}\vb y(\vb x)$ \ts{7}{1}{15:00}.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(i) and (ii) are the first $n$ and the remaining rows of $\dot{\vb y}=K\vb y$. (iii)
+$\dot\varphi=\vb c^{\mathsf T}\dot{\vb y}=\vb c^{\mathsf T}K\vb y=\lambda\vb c^{\mathsf T}\vb y=\lambda\varphi$.
+\end{proof}
+
+\begin{casestudy}[The slow-manifold system, again]
+For \eqref{eq:ko-slow}, $\vb y=(x_1,x_2,x_1^2)$ closes with
+$K=\begin{psmallmatrix}\mu&0&0\\0&\lambda&-\lambda\\0&0&2\mu\end{psmallmatrix}$ \ts{7}{1}{10:31}\ts{7}{1}{11:54}\ts{7}{1}{12:35}\ts{7}{1}{13:17}.
+Item (i) is why $x_1^2$ is needed (it appears in $f_2$), item (ii) is the ``lucky'' fact that
+$\frac{\mathrm d}{\mathrm dt}x_1^2=2\mu x_1^2$ closes \ts{7}{1}{22:33}. Trajectories of the 3D linear system,
+projected on $(y_1,y_2)$, reproduce the nonlinear dynamics exactly \ts{7}{1}{13:38}.
+\end{casestudy}
+
+\paragraph{The 3D picture} \ts{7}{2}{1:26}--\ts{7}{2}{4:33}. In $(y_1,y_2,y_3)$:
+\begin{itemize}
+  \item the \emph{blue} paraboloid $y_3=y_1^2$ is where physical initial conditions must start (the third
+        coordinate must equal the square of the first) \ts{7}{2}{2:07}\ts{7}{2}{2:27};
+  \item the \emph{red} parabolic sheet $y_2=y_1^2$ is the slow manifold, extended in $y_3$ \ts{7}{2}{2:07};
+  \item the \emph{green} plane is the slow subspace of $K$, spanned by the eigenvectors of $\mu$ and $2\mu$;
+        white trajectories of the linear system fall quickly onto it and slide to the origin
+        \ts{7}{2}{2:48}\ts{7}{2}{3:09}.
+\end{itemize}
+The green plane does not quite pass through the intersection of red and blue; as $\lambda$ becomes faster it
+tilts up until it does \ts{7}{2}{3:30}\ts{7}{2}{3:51}. Indeed the eigenvector of $2\mu$ is
+$(0,\,\frac{\lambda}{\lambda-2\mu},\,1)$, so the green plane is $y_2=\frac{\lambda}{\lambda-2\mu}y_3$, which tends to
+$y_2=y_3$ for $|\lambda|\gg|\mu|$.
+
+% ------------------------------------------------------------------
+\section{Koopman operator optimal control}\label{sec:kc-lqr}
+
+Add a control on $x_2$: $\dot x_2=\lambda(x_2-x_1^2)+u$. The lifted system is
+$\dot{\vb y}=K\vb y+Bu$ with $B=(0,1,0)^{\mathsf T}$: same $K$, input only on $y_2$ \ts{7}{1}{16:02}\ts{7}{1}{16:22}.
+
+\begin{definition}[New concepts: LQR]\label{def:kc-lqr}
+For $\dot{\vb x}=A\vb x+B\vb u$ the \textbf{linear quadratic regulator} minimizes
+$J=\int_0^\infty(\vb x^{\mathsf T}Q\vb x+\vb u^{\mathsf T}R\vb u)\,\mathrm dt$; the optimum is the proportional feedback
+$\vb u=-C\vb x$, $C=R^{-1}B^{\mathsf T}P$, where $P$ solves the algebraic Riccati equation
+$A^{\mathsf T}P+PA-PBR^{-1}B^{\mathsf T}P+Q=0$. $Q$ weights deviations of the state, $R$ control expenditure
+\ts{7}{1}{16:42}\ts{7}{1}{17:03}\ts{7}{3}{3:12}\ts{7}{3}{3:32}. (Named for the linear dynamics and the quadratic cost;
+Kalman, 1960.)
+\end{definition}
+
+\paragraph{Two controllers} \ts{7}{3}{2:10}--\ts{7}{3}{8:01}:
+\begin{enumerate}
+  \item \textbf{naive}: linearize at the origin, $A=\begin{psmallmatrix}\mu&0\\0&\lambda\end{psmallmatrix}$, $Q=I$,
+        $R=1$, one call to \texttt{lqr}, $u=-C\vb x$ \ts{7}{3}{2:31}\ts{7}{3}{3:53}\ts{7}{3}{4:13};
+  \item \textbf{Koopman}: LQR on $(K,B)$ with $Q=\diag(1,1,0)$ (the \emph{same} cost: no penalty on the fictitious
+        $y_3$) \ts{7}{3}{5:36}\ts{7}{3}{5:56}. The gain has three entries, so
+        \begin{equation}\label{eq:kc-u}
+          u=-c_1x_1-c_2x_2-c_3x_1^2 ,
+        \end{equation}
+        a \emph{nonlinear} feedback obtained from a linear method \ts{7}{1}{17:44}\ts{7}{1}{18:05}\ts{7}{3}{6:57}\ts{7}{3}{7:40}.
+\end{enumerate}
+In the video the Koopman controller reaches the origin with less deviation and about one third of the total
+cost \ts{7}{1}{18:25}\ts{7}{1}{18:46}\ts{7}{3}{8:42}\ts{7}{3}{9:03}\ts{7}{3}{9:23}, and seems to work even from very large
+initial conditions, as if globally optimal \ts{7}{3}{9:44}.
+
+\codefile{LQR on the linearization vs on the Koopman system}{../code/ch07_koopman_lqr.py}
+
+With the parameters of the paper, $\mu=-0.1$, $\lambda=1$, $\vb x_0=(-5,5)$, the script prints the gains
+$(0,\,2.414)$ and $(0,\,2.414,\,-1.496)$ and total costs $J=4485$ (linearized) and $J=990$ (Koopman), a factor
+$\approx4.5$; the exact ratio depends on the initial condition.
+
+\begin{intuition}[Why the extra term helps]
+The linearized controller sees only $\dot x_2=\lambda x_2+u$ and fights the term $-\lambda x_1^2$ as an unknown
+disturbance. The Koopman controller ``knows'' that $x_2$ is pulled towards $x_1^2$: with $c_3<0$ the feedback
+$-c_3x_1^2$ cancels part of $-\lambda x_1^2$, so it cooperates with the slow manifold instead of fighting it
+(\cref{sec:ko-control}).
+\end{intuition}
+
+% ------------------------------------------------------------------
+\section{When finite closure is impossible}\label{sec:kc-limits}
+
+\begin{proposition}[Topological obstruction]\label{prop:kc-topology}
+If $\dot{\vb x}=\vb f(\vb x)$ has more than one isolated fixed point, or a periodic orbit, or a more complicated
+attractor (e.g.\ Lorenz), it admits no finite-dimensional linear system $\dot{\vb y}=K\vb y$, $\vb y=\vb g(\vb x)$,
+with $\vb x$ among the components of $\vb y$ \ts{7}{1}{22:55}\ts{7}{1}{23:15}.
+\end{proposition}
+\begin{proof}[Sketch (the argument of the paper, not a full proof)]
+Since $\vb x$ is a component of $\vb y$, the map $\vb g$ is injective and conjugates the nonlinear flow to the
+linear flow restricted to the image $\vb g(M)$, which is invariant. A fixed point $\bar{\vb x}$ maps to a
+$\vb y$ with $K\vb y=0$, i.e.\ to $\ker K$, a linear subspace; the fixed points of a linear flow form a connected
+set, and the linear flow near $\ker K$ cannot reproduce two separated basins (a rigorous version must handle the
+restriction to the curved image $\vb g(M)$); a linear flow has no isolated periodic orbits
+(limit cycles) and no strange attractors, since solutions are sums of $e^{\lambda t}$ terms. The video's phrasing:
+the flows cannot be topologically conjugate, one cannot be continuously deformed into the other
+\ts{7}{1}{23:36}\ts{7}{1}{23:57}.
+\end{proof}
+
+This is disappointing but expected: we traded nonlinearity for infinite dimension, and non-trivial dynamics
+really uses it \ts{7}{1}{24:18}. There may still be special eigenfunctions spanning finite subspaces, but they will
+not include the state \ts{7}{1}{26:43}.
+
+\paragraph{The logistic map.} Try $\vb y_k=(x_k,x_k^2)$ for $x_{k+1}=rx_k(1-x_k)$: already
+$x_{k+1}^2=r^2(x_k-x_k^2)^2$ contains $x_k^4$; then $x^8$, and so on: a cascade of complexity
+\ts{7}{1}{25:01}\ts{7}{1}{25:42}\ts{7}{1}{26:02}\ts{7}{1}{26:22}. In the monomial basis the rows of $K$ are shifted rows of
+Pascal's triangle times powers of $r$ \ts{7}{1}{27:04}: indeed $x_{k+1}^j=r^jx_k^j(1-x_k)^j=r^j\sum_i\binom ji(-1)^ix_k^{j+i}$.
+Truncations to $5\times5$ have little predictive value; no good finite approximation was found
+\ts{7}{1}{27:45}\ts{7}{1}{28:05}.
+
+\paragraph{$\dot x=x^2$, truncated.} A single fixed point, but finite-time blow-up \ts{7}{1}{28:27}. In the basis
+$y_k=x^k$, $\dot y_k=kx^{k-1}\dot x=ky_{k+1}$: $K$ has $1,2,3,\dots$ on the superdiagonal
+\ts{7}{1}{28:47}\ts{7}{1}{29:08}. Truncating to $N\times N$ gives better and better approximations as $N$ grows
+\ts{7}{1}{29:29}\ts{7}{1}{29:49}\ts{7}{1}{30:10}. The script, for $x_0=0.5$ (blow-up at $t=2$), gives $x(1.8)\approx0.5$,
+$0.95$, $1.72$, $2.85$, $4.07$ for $N=1,2,4,8,16$, against the exact $5$: the truncation is the Taylor
+polynomial of $x_0/(1-x_0t)$ in $t$, which converges for $t<2$, ever more slowly near the singularity.
+
+\begin{keyformulas}
+\begin{itemize}
+  \item Closure with the state: $\vb f\in\operatorname{span}\vb y$ and $\nabla g_j\cdot\vb f\in\operatorname{span}\vb y$;
+        eigenfunctions from left eigenvectors, $\varphi=\vb c^{\mathsf T}\vb y$.
+  \item Koopman LQR: LQR on $(K,B)$, $Q=\diag(1,1,0)$ $\Rightarrow$ $u=-c_1x_1-c_2x_2-c_3x_1^2$.
+  \item Obstruction: several fixed points, limit cycles, chaos $\Rightarrow$ no finite closure containing $\vb x$.
+\end{itemize}
+\end{keyformulas}
+
+\section*{Exercises}
+
+\begin{exercise}[Which systems close?]
+Decide whether a finite Koopman-invariant subspace containing the state exists, and find it if so:
+(a) $\dot x_1=\mu x_1$, $\dot x_2=\lambda(x_2-x_1^3)$;
+(b) $\dot x_1=\mu x_1$, $\dot x_2=\lambda x_2+x_1x_2$;
+(c) $\dot x=x-x^3$.
+For (b), consider the observable $x_2e^{-x_1/\mu}$.
+\end{exercise}
+
+\begin{exercise}[Slow subspace]
+Compute the eigenvectors of $K$ for the slow-manifold system and show that the slow (green) subspace is
+$y_2=\frac{\lambda}{\lambda-2\mu}y_3$. Plot its intersection with $y_3=y_1^2$ for $\lambda=-1,-10,-100$ ($\mu=-0.1$) and
+compare with $y_2=y_1^2$.
+\end{exercise}
+
+\begin{exercise}[Cost versus initial condition]
+Modify \file{ch07_koopman_lqr.py} to compute the ratio of the two costs on a grid of initial conditions in
+$[-5,5]^2$ and plot it. Where does the Koopman controller help most? Does the linearized controller ever fail to
+stabilize?
+\end{exercise}
+
+\begin{exercise}[Logistic-map Koopman matrix]
+Write the first four rows of $K$ in the basis $1,x,x^2,\dots,x^8$ for the logistic map. Truncate to the first
+$N$ monomials, iterate from $x_0=0.3$ for $r=2.5$ (a stable fixed point) and $r=3.9$ (chaos), and compare with
+the true orbit.
+\end{exercise}
+
+\end{paracol}
