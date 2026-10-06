@@ -36,4 +36,4 @@ preamble machinery, `build.py`, `tools/transcripts.py`): when in doubt, do as th
 ## Build and check
 `cd lecture-notes && python .vscode/build.py full`, then grep `build/main.log` for
 `\.tex:[0-9]+:`, `undefined`, `Overfull`; look at the rendered pages (Read tool on `build/main.pdf`).
-Commit after each verified chapter; push only when asked.
+Commit and push after each verified chapter, on main (no branch/PR).
