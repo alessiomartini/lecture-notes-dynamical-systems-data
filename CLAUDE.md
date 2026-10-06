@@ -4,7 +4,7 @@ Talk to Alessio in Italian; the notes, code and docs are in English.
 Global preferences (`~/.claude/rules/alessio-preferences.md`, section "Lecture notes") apply in full:
 fixed box colours, screen layout with right column, notes/answers/requests system, history boxes,
 "New concepts" definition boxes, etymology of new terms, enumerations one item per line, exercises
-without solutions, `mysolution` never edited (comments go in `\feedback`); short exercises (practising one section) go right after that section in the text; only integrative exercises needing the whole chapter stay in the final "Exercises" section (2026-10-06).
+without solutions, `mysolution` never edited (comments go in `\feedback`); standalone exercises (self-contained, practising one section) go in the text right after that section, as early as possible; exercises forming a connected series with a global sense (consecutive problems referring to each other, e.g. "the matrix of the previous exercise") stay together at the end of the chapter in their original order, together with integrative ones needing the whole chapter (2026-10-06, refined 2026-10-07).
 The setup is copied from `../lecture-notes-economics-of-money-and-banking-Perry-Mehrling` (same
 preamble machinery, `build.py`, `tools/transcripts.py`): when in doubt, do as that repo does.
 
