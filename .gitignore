@@ -13,3 +13,7 @@ materials/web/*_files/
 materials/web/MOOC _ Perry Mehrling - Economics of Money and Banking - YouTube.pdf
 materials/databook.pdf
 materials/databook.txt
+
+# Third-party material (YouTube transcripts, playlist page): kept only locally
+materials/transcripts/
+materials/*.pdf
