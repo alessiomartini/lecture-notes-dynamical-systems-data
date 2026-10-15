@@ -58,6 +58,7 @@
 \definecolor{exercol}{HTML}{3949AB} % indigo: exercises
 \definecolor{srccol}{HTML}{546E7A}  % grey-blue: sources, course notes, remarks
 \definecolor{histcol}{HTML}{B8860B} % bronze: history boxes (classical columns)
+\definecolor{recallcol}{HTML}{00ACC1} % cyan: recall boxes (material already seen earlier)
 \definecolor{doubtcol}{HTML}{C62828}
 \definecolor{ideacol}{HTML}{1565C0}
 \definecolor{okcol}{HTML}{388E3C}
@@ -209,6 +210,11 @@
     fontupper=\scriptsize\mdseries\upshape\raggedright,fonttitle=\scriptsize\sffamily\bfseries,coltitle=white,colbacktitle=#1}}
 \NewDocumentEnvironment{aside}{O{} +b}{\side@put{\begin{tcolorbox}[sidecontent=histcol,
   title={\boxtitle{Aside}{#1}}]#2\end{tcolorbox}}}{}
+% Recall: a repetition of something explained earlier (another chapter, earlier in this one),
+% restated briefly with a \cref to the original, so that it is visibly a repetition.
+% Longer repeated passages go verbatim to a "Set aside" section at the end of the chapter.
+\NewDocumentEnvironment{recall}{O{} +b}{\side@put{\begin{tcolorbox}[sidecontent=recallcol,
+  title={\boxtitle{Recall}{#1}}]#2\end{tcolorbox}}}{}
 \NewDocumentEnvironment{coursenote}{O{} +b}{\side@put{\begin{tcolorbox}[sidecontent=srccol,
   title={\boxtitle{Course note}{#1}}]#2\end{tcolorbox}}}{}
 % Examples and proofs keep their theorem-like look (numbering, labels, QED) but go to the right column

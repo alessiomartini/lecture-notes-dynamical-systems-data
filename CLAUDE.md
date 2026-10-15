@@ -23,6 +23,10 @@ preamble machinery, `build.py`, `tools/transcripts.py`): when in doubt, do as th
 - History boxes: fact-checked, with a References line.
 
 ## LaTeX conventions (preamble.tex)
+- Keep the pace (2026-10-15): a repetition of earlier material goes in a right-column `recall` box (cyan) with a
+  `\cref` to the original; long exercises (> ~15-20 min, open projects, substantial programming) go verbatim to
+  `appendices/appA-exam.tex` ("Pseudo-exam and second reading"), with a short core in the text; nothing is
+  deleted (passages taken out of the text go to a `\section*{Set aside}` at the chapter end).
 - Boxes: `intuition`, `application` (orange), `casestudy`, `reading` (book sections), `keyformulas`,
   `secondary`, `history`, `aside`, `coursenote`, `example` (right column), `code` (Python listing,
   text column only).

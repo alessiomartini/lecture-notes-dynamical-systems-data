@@ -1,0 +1,43 @@
+% !TEX root = ../main.tex
+\chapter{Pseudo-exam and second reading}\label{app:exam}
+\begin{paracol}{2}
+
+The long exercises of each chapter (more than about a quarter of an hour, open-ended projects, or substantial
+programming), moved here verbatim so that a first reading of the chapters is not held up by them. Use this
+appendix as a second reading or, once the course is finished, as a cumulative self-test: retrieval spaced weeks
+after first study is among the best-supported ways to make material stick (Cepeda et al.\ 2006; Adesope et al.\ 2017).
+
+% ------------------------------------------------------------------
+\section{Overview (\cref{ch:overview})}\label{exam:ch01}
+
+\begin{exercise}[Anatomy of a system of your choice]\label{ex:ov-anatomy}
+Choose a system: (a) an SIR epidemic in a city; (b) a wind turbine in a turbulent wind; (c) the
+temperature of a room heated by a thermostat. For each one:
+\begin{enumerate}[(i)]
+  \item define a state $\vb x$ and estimate its dimension;
+  \item list the controls $\vb u$ and the parameters $\boldsymbol\beta$, and say which parameters
+        could become controls;
+  \item say what can realistically be measured, $\vb y=\vb g(\vb x,t)$;
+  \item say which challenges of \cref{sec:ov-challenges} apply, and which use of
+        \cref{sec:ov-uses} you would care most about.
+\end{enumerate}
+Its core is \cref{ex:ov-anatomy-short} in the text.
+\end{exercise}
+
+% ------------------------------------------------------------------
+\section{Simulation (\cref{ch:simulation})}\label{exam:ch03}
+
+\begin{exercise}[Feigenbaum's constant]\label{ch03:exam-1}
+Using bisection on the multiplier of the period-$2^n$ orbit, or by reading the zoomed bifurcation
+diagram, estimate the first four period-doubling values $\beta_1=3$, $\beta_2\approx3.449$, $\beta_3$,
+$\beta_4$, and the ratios $(\beta_n-\beta_{n-1})/(\beta_{n+1}-\beta_n)$.
+\end{exercise}
+
+% ------------------------------------------------------------------
+\section{SINDy (\cref{ch:sindy})}\label{exam:ch05}
+
+\begin{exercise}[Parametrized logistic map]\label{ch05:exam-1}
+Generate logistic-map data for $\mu\in\{2.5,2.75,\dots,3.95\}$ (10 values), build a library of monomials in
+$(x,\mu)$ up to order 4, and fit $x_{k+1}$ (a map: no derivative needed). Use the model to draw the
+bifurcation diagram on $[2.5,4]$ and compare with \cref{fig:si-logistic}.
+\end{exercise}
