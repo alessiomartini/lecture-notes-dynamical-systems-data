@@ -37,3 +37,17 @@ preamble machinery, `build.py`, `tools/transcripts.py`): when in doubt, do as th
 `cd lecture-notes && python .vscode/build.py full`, then grep `build/main.log` for
 `\.tex:[0-9]+:`, `undefined`, `Overfull`; look at the rendered pages (Read tool on `build/main.pdf`).
 Commit and push after each verified chapter, on main (no branch/PR).
+
+## Roadmap e progressi
+
+Questo progetto è tracciato in https://alessiomartini.github.io/projects-overview/ tramite il file `ROADMAP.md`
+nella root del repo. Mantienilo aggiornato:
+
+- Alla fine di ogni sessione di lavoro (prima del commit finale), aggiorna `ROADMAP.md`:
+  - spunta (`- [x]`) i punti completati in questa sessione;
+  - aggiungi come `- [ ]` i nuovi compiti emersi, nella fase giusta (titoli `##`);
+  - aggiungi in cima alla sezione `## Log` una riga `- AAAA-MM-GG: <cosa è stato fatto, in una frase>`
+    (se esiste già una riga con la data di oggi, estendila invece di crearne un'altra).
+- Non riscrivere né riordinare le voci esistenti senza motivo; non cancellare le voci completate.
+- Se `ROADMAP.md` non esiste, crealo con le fasi `## ...`, le checkbox e una sezione `## Log`.
+- Includi l'aggiornamento di `ROADMAP.md` nello stesso commit del lavoro.
