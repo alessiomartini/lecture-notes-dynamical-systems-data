@@ -36,6 +36,7 @@ Unico file per todo, idee, decisioni e diario, letto da Projects Overview
 - Bash heredocs collapse `\\` to `\`: LaTeX edits go through the Edit/Write tools.
 
 ## Log
+- 2026-11-02: nuovo flusso: annotazioni sul PDF in Dropbox. Risposte alle 3 annotazioni di p.14-15 (Hartman-Grobman, slot friction della Jacobiana, autovettori più lunghi nella figura 2.1)
 - 2026-10-18: FUTURE-ARCHITECTURE.md unito in ROADMAP.md (protocollo unico)
 - 2026-10-16: box RECALL nel preambolo; 3 esercizi lunghi (progetto, Feigenbaum, mappa logistica parametrizzata) spostati nell'appendice pseudo-esame
 - 2026-10-15: creata la roadmap per Projects Overview
