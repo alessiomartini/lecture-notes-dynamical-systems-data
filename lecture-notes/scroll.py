@@ -96,10 +96,12 @@ def resolve_links(w, dest_map):
                                                      FloatObject(left), FloatObject(top), NullObject()])
 
 
-def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0, meta=None, resolve=False):
+def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0, meta=None, resolve=False,
+           bigblank=70.0, runblank=24.0):
     """Stack the pages first..last of `inp` into long pages (<= maxcm; a new one also starts at the 1-based page
-    numbers in `breaks`). Pages are cut to their inked part (no header, no empty bottom). Link annotations and named
-    destinations are carried over (positions translated), so cross-references keep working."""
+    numbers in `breaks`). Every page is cut to its inked part, and a blank band taller than `bigblank` pt inside a
+    page (title page, part pages...) is shortened to `runblank` pt. Link annotations and named destinations are
+    carried over (positions translated), so cross-references keep working."""
     import pypdfium2 as pdfium
     from PIL import ImageOps
     from pypdf import PdfReader, PdfWriter, PageObject, Transformation
@@ -107,32 +109,51 @@ def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0
                                Destination, Fit)
     doc, rd, w = pdfium.PdfDocument(inp), PdfReader(inp), PdfWriter()
     last = last or len(doc)
-    items = []
+    items = []   # (source page, lo, hi, first run of its page) in PDF coordinates
     for i in range(first - 1, min(last, len(doc))):
         pg = doc[i]
-        bb = ImageOps.invert(pg.render(scale=1).to_pil().convert('L')).point(lambda v: 255 if v > 8 else 0).getbbox()
-        if bb:
-            H = pg.get_size()[1]
-            items.append((i, H - bb[3] - 1.0, H - bb[1] + 1.0))
+        ink = ImageOps.invert(pg.render(scale=1).to_pil().convert('L')).point(lambda v: 255 if v > 8 else 0)
+        rows = ink.getprojection()[1]   # 1 for every pixel row that has ink
+        H = pg.get_size()[1]
+        runs, start, blank = [], None, 0
+        for r, v in enumerate(rows):
+            if v:
+                if start is None:
+                    start = r
+                elif blank > bigblank:
+                    runs.append((start, r - blank - 1)); start = r
+                blank = 0
+            elif start is not None:
+                blank += 1
+        if start is not None:
+            runs.append((start, len(rows) - 1 - blank))
+        for n, (a, b) in enumerate(runs):
+            items.append((i, H - b - 2.0, H - a + 1.0, n == 0))
     W = float(rd.pages[0].mediabox.width)
     chunks, cur, h = [], [], 0.0
     for it in items:
-        if cur and ((it[0] + 1) in breaks or h + (it[2] - it[1]) + gap > maxcm / 2.54 * 72):
+        if cur and ((it[3] and (it[0] + 1) in breaks) or h + (it[2] - it[1]) + gap > maxcm / 2.54 * 72):
             chunks.append(cur); cur, h = [], 0.0
         cur.append(it); h += it[2] - it[1] + gap
     chunks.append(cur)
-    placed = {}   # source page index -> (long page index, vertical shift)
+    placed = {}   # source page index -> [(lo, hi, long page index, vertical shift)]
     for k, ch in enumerate(chunks):
-        T = sum(hi - lo + gap for _, lo, hi in ch) + 2 * pad
+        T = sum(hi - lo + gap for _, lo, hi, _ in ch) + 2 * pad
         pg = PageObject.create_blank_page(width=W, height=T)
         y = T - pad
         links = ArrayObject()
-        for i, lo, hi in ch:
+        prev = None
+        for i, lo, hi, _ in ch:
+            if prev == i:
+                y -= runblank - gap   # same page, a long blank band was cut out here
             src = rd.pages[i]
             ty = y - hi
             for ref in src.get('/Annots') or []:
                 a = ref.get_object()
                 if str(a.get('/Subtype')) != '/Link':
+                    continue
+                x0, y0, x1, y1 = [float(v) for v in a['/Rect']]
+                if not (lo <= (y0 + y1) / 2 <= hi):
                     continue
                 act = a.get('/A')
                 target = a.get('/Dest') if '/Dest' in a else (act.get('/D') if act is not None and str(act.get('/S')) == '/GoTo' else None)
@@ -143,14 +164,16 @@ def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0
                     new_a = DictionaryObject({NameObject('/S'): NameObject('/URI'), NameObject('/URI'): TextStringObject(str(uri))})
                 else:
                     continue
-                x0, y0, x1, y1 = [float(v) for v in a['/Rect']]
                 links.append(DictionaryObject({
                     NameObject('/Type'): NameObject('/Annot'), NameObject('/Subtype'): NameObject('/Link'),
                     NameObject('/Rect'): ArrayObject([FloatObject(x0), FloatObject(y0 + ty), FloatObject(x1), FloatObject(y1 + ty)]),
                     NameObject('/Border'): ArrayObject([NumberObject(0), NumberObject(0), NumberObject(0)]), NameObject('/A'): new_a}))
-            pg.merge_transformed_page(src, Transformation().translate(0, y - hi))
-            placed[i] = (k, ty)
+            run = PageObject.create_blank_page(width=W, height=hi - lo)   # its page box clips to this run
+            run.merge_transformed_page(src, Transformation().translate(0, -lo))
+            pg.merge_transformed_page(run, Transformation().translate(0, y - (hi - lo)))
+            placed.setdefault(i, []).append((lo, hi, k, ty))
             y -= hi - lo + gap
+            prev = i
         if len(links):
             pg[NameObject('/Annots')] = links
         w.add_page(pg)
@@ -163,9 +186,10 @@ def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0
         except Exception:
             continue
         if i in placed:
-            k, ty = placed[i]
-            top = (float(d.top) if d.top is not None else float(rd.pages[i].mediabox.height)) + ty
-            left = float(d.left) if d.left is not None else 0.0
+            top0 = float(d.top) if d.top is not None else float(rd.pages[i].mediabox.height)
+            runs = placed[i]
+            lo, hi, k, ty = next((r for r in runs if r[0] - 20 <= top0 <= r[1] + 20), min(runs, key=lambda r: abs(r[1] - top0)))
+            top, left = min(max(top0, lo), hi) + ty, (float(d.left) if d.left is not None else 0.0)
             w.add_named_destination_object(Destination(name, w.pages[k].indirect_reference, Fit.xyz(left, top, 0)))
             dest_map[name] = (k, left, top)
     if resolve:
