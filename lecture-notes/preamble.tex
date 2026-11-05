@@ -58,6 +58,12 @@
   \AddToHook{shipout/before}{\stepcounter{scrollabs}}
   \AddToHook{include/before}{\immediate\write\scrollpg{\the\numexpr\value{scrollabs}+1\relax}}
   \AddToHook{include/after}{\immediate\write\scrollpg{\the\value{scrollabs}}}
+  % a chapter longer than ~3 pages of 100 cm starts a new long page at the next \section (clean seam, PDF viewers
+  % stop at ~508 cm); the page number of every break goes to the same file, scroll.py stacks accordingly
+  \newcounter{scrollsince}
+  \newcommand{\scrollbreak}{\clearpage\immediate\write\scrollpg{\the\numexpr\value{scrollabs}+1\relax}\setcounter{scrollsince}{\value{scrollabs}}}
+  \AddToHook{include/before}{\setcounter{scrollsince}{\value{scrollabs}}}
+  \AddToHook{cmd/section/before}{\ifnum\numexpr\value{scrollabs}-\value{scrollsince}\relax>2 \scrollbreak\fi}
 \fi
 
 % ---------- colours (bright on purpose: yellow notes, blue definitions, red theorems, green examples) ----------

@@ -8,7 +8,7 @@ r"""Continuous-scroll build of the book: one long PDF page per chapter (no page 
 Each chapter is typeset with `\includeonly` in "scroll mode" (preamble: 100 cm tall pages, no header), reading the
 cross-reference aux files of the last full build (python build.py pages), then every page is cut to its inked part and
 the pages are stacked into long pages (<= 480 cm: PDF viewers stop around 508 cm). The chapter PDFs live in
-build/scroll/, build/book.pdf is their concatenation with bookmarks. Links between chapters are not kept.
+build/scroll/, build/book.pdf is their concatenation with bookmarks. Internal links and URLs are carried over (named destinations are merged into one name space).
 Needs: pdflatex, pypdf, pypdfium2, Pillow.
 """
 import os, re, shutil, subprocess, sys
@@ -40,6 +40,10 @@ def stem(p):
     return os.path.basename(p)
 
 
+import threading
+LOCK = threading.Lock()
+
+
 def compile_chapter(p):
     d = os.path.join(S, 'tmp-' + stem(p))
     shutil.rmtree(d, ignore_errors=True)
@@ -62,22 +66,29 @@ def compile_chapter(p):
         print('FAILED', p, '(see', os.path.join(d, 'main.log') + ')')
         return None
     rng = os.path.join(d, 'main.scrollpages')
-    first, last = 1, None
+    first, last, breaks = 1, None, ()
     if os.path.exists(rng):
         nums = [int(x) for x in open(rng).read().split()]
         if nums and not p.endswith('ch00-requests'):
             first = nums[0]   # the chapter is the last thing typeset: its pages run to the end of the PDF
+            breaks = tuple(nums[1:])   # page numbers where \scrollbreak started a new long page
     out = os.path.join(S, stem(p) + '.pdf')
-    n = stitch(pdf, out, first, last)
-    print(f'{stem(p)}: {n} long page(s)')
+    with LOCK:   # pdfium is not thread-safe: stitch one chapter at a time (pdflatex runs stay parallel)
+        n = stitch(pdf, out, first, last, breaks)
+    print(f'{stem(p)}: {n} long page(s)', flush=True)
     shutil.rmtree(d, ignore_errors=True)
     return out
 
 
-def stitch(inp, out, first=1, last=None, maxcm=480, gap=3.0, pad=12.0):
+def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0, meta=None):
+    """Stack the pages first..last of `inp` into long pages (<= maxcm; a new one also starts at the 1-based page
+    numbers in `breaks`). Pages are cut to their inked part (no header, no empty bottom). Link annotations and named
+    destinations are carried over (positions translated), so cross-references keep working."""
     import pypdfium2 as pdfium
     from PIL import ImageOps
     from pypdf import PdfReader, PdfWriter, PageObject, Transformation
+    from pypdf.generic import (ArrayObject, DictionaryObject, FloatObject, NameObject, NumberObject, TextStringObject,
+                               Destination, Fit)
     doc, rd, w = pdfium.PdfDocument(inp), PdfReader(inp), PdfWriter()
     last = last or len(doc)
     items = []
@@ -90,35 +101,80 @@ def stitch(inp, out, first=1, last=None, maxcm=480, gap=3.0, pad=12.0):
     W = float(rd.pages[0].mediabox.width)
     chunks, cur, h = [], [], 0.0
     for it in items:
-        if cur and h + (it[2] - it[1]) + gap > maxcm / 2.54 * 72:
+        if cur and ((it[0] + 1) in breaks or h + (it[2] - it[1]) + gap > maxcm / 2.54 * 72):
             chunks.append(cur); cur, h = [], 0.0
         cur.append(it); h += it[2] - it[1] + gap
     chunks.append(cur)
-    for ch in chunks:
+    placed = {}   # source page index -> (long page index, vertical shift)
+    for k, ch in enumerate(chunks):
         T = sum(hi - lo + gap for _, lo, hi in ch) + 2 * pad
         pg = PageObject.create_blank_page(width=W, height=T)
         y = T - pad
+        links = ArrayObject()
         for i, lo, hi in ch:
             src = rd.pages[i]
-            if '/Annots' in src:
-                del src['/Annots']
+            ty = y - hi
+            for ref in src.get('/Annots') or []:
+                a = ref.get_object()
+                if str(a.get('/Subtype')) != '/Link':
+                    continue
+                act = a.get('/A')
+                target = a.get('/Dest') if '/Dest' in a else (act.get('/D') if act is not None and str(act.get('/S')) == '/GoTo' else None)
+                uri = act.get('/URI') if act is not None and str(act.get('/S')) == '/URI' else None
+                if isinstance(target, str):
+                    new_a = DictionaryObject({NameObject('/S'): NameObject('/GoTo'), NameObject('/D'): TextStringObject(str(target))})
+                elif uri is not None:
+                    new_a = DictionaryObject({NameObject('/S'): NameObject('/URI'), NameObject('/URI'): TextStringObject(str(uri))})
+                else:
+                    continue
+                x0, y0, x1, y1 = [float(v) for v in a['/Rect']]
+                links.append(DictionaryObject({
+                    NameObject('/Type'): NameObject('/Annot'), NameObject('/Subtype'): NameObject('/Link'),
+                    NameObject('/Rect'): ArrayObject([FloatObject(x0), FloatObject(y0 + ty), FloatObject(x1), FloatObject(y1 + ty)]),
+                    NameObject('/Border'): ArrayObject([NumberObject(0), NumberObject(0), NumberObject(0)]), NameObject('/A'): new_a}))
             pg.merge_transformed_page(src, Transformation().translate(0, y - hi))
+            placed[i] = (k, ty)
             y -= hi - lo + gap
+        if len(links):
+            pg[NameObject('/Annots')] = links
         w.add_page(pg)
+    for name, d in rd.named_destinations.items():
+        if name.startswith('page.') or name == 'Doc-Start':
+            continue
+        try:
+            i = rd.get_destination_page_number(d)
+        except Exception:
+            continue
+        if i in placed:
+            k, ty = placed[i]
+            top = (float(d.top) if d.top is not None else float(rd.pages[i].mediabox.height)) + ty
+            left = float(d.left) if d.left is not None else 0.0
+            w.add_named_destination_object(Destination(name, w.pages[k].indirect_reference, Fit.xyz(left, top, 0)))
+    if meta:
+        w.add_metadata(meta)
     w.write(out)
     return len(chunks)
 
 
 def assemble():
     from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import Destination, Fit
     w = PdfWriter()
     for p, title in includes():
         f = os.path.join(S, stem(p) + '.pdf')
         if not os.path.exists(f):
             continue
         first = len(w.pages)
-        for pg in PdfReader(f).pages:
+        rd = PdfReader(f)
+        for pg in rd.pages:
             w.add_page(pg)
+        for name, d in rd.named_destinations.items():   # one name space for the whole book: cross-chapter links
+            try:
+                i = rd.get_destination_page_number(d)
+                w.add_named_destination_object(Destination(name, w.pages[first + i].indirect_reference,
+                                                            Fit.xyz(float(d.left or 0), float(d.top or 0), 0)))
+            except Exception:
+                pass
         w.add_outline_item(title, first)
     w.add_metadata({'/Title': os.path.basename(os.getcwd())})
     out = os.path.join(B, 'book.pdf')
@@ -131,6 +187,14 @@ def assemble():
 
 if __name__ == '__main__':
     os.makedirs(S, exist_ok=True)
+    from pypdf import PdfReader
+    for f in [x for x in os.listdir(S) if x.endswith('.pdf')]:   # a killed run leaves truncated PDFs: drop them
+        try:
+            PdfReader(os.path.join(S, f))
+        except Exception:
+            os.remove(os.path.join(S, f)); print('removed truncated', f)
+    for d in [x for x in os.listdir(S) if x.startswith('tmp-')]:
+        shutil.rmtree(os.path.join(S, d), ignore_errors=True)
     args = sys.argv[1:]
     inc = [p for p, _ in includes()]
     if args == ['assemble']:
@@ -145,6 +209,6 @@ if __name__ == '__main__':
                 or os.path.getmtime('preamble.tex') > os.path.getmtime(os.path.join(S, stem(p) + '.pdf'))]
     if not os.path.exists(os.path.join(B, 'main.aux')):
         sys.exit('no build/main.aux: run "python build.py pages" (full latexmk build) once first')
-    with ThreadPoolExecutor(max_workers=4) as ex:
+    with ThreadPoolExecutor(max_workers=int(os.environ.get('SCROLL_WORKERS', 3))) as ex:
         list(ex.map(compile_chapter, todo))
     assemble()
