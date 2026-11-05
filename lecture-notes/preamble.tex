@@ -8,15 +8,15 @@
 \usepackage{bm}
 \usepackage{microtype}
 % Screen layout (31.5x18 cm = Acer Aspire E15 screen minus 15 mm (left/right) and 7 mm (top/bottom) viewer margin, PDF viewer in reading mode, not printed): two parallel columns (paracol), the text column
-% with the width it had on A4 (15 cm) and a 6.5 cm right column for notes, answers, feedback,
+% 18.8 cm and a 10 cm right column (was 15 + 6.5 until 2026-11-05) for notes, answers, feedback,
 % examples, proofs, course notes, history and asides. Every right-column item starts level with the
 % paragraph it belongs to; if the right column is still busy, the text waits (white space).
 % The old A4 print layout was: a4paper,inner=2.4cm,outer=3.6cm,marginparwidth=3.0cm,marginparsep=0.3cm (twoside).
-\usepackage[paperwidth=31.5cm,paperheight=18cm,top=1.6cm,bottom=1.4cm,left=1.5cm,textwidth=22cm,
-  marginparsep=0.5cm,marginparwidth=6.5cm,headheight=23pt]{geometry}
+\usepackage[paperwidth=31.5cm,paperheight=18cm,includehead,top=0.4cm,bottom=1.5cm,left=0.9cm,textwidth=29.3cm,
+  marginparsep=0.5cm,marginparwidth=10cm,headheight=14pt,headsep=0.15cm]{geometry} % one-line header holds the page number: no footer
 \usepackage{paracol}
 \usepackage{needspace} % \Needspace*{10.5cm} before a tall unbreakable right-column box (history) that would run off the page
-\setcolumnwidth{15cm/0.5cm,6.5cm}
+\setcolumnwidth{18.8cm/0.5cm,10cm}
 % counters shared by the two columns (equations in a proof, examples, answers ... in the right column)
 % (sectioning counters cannot be global with this kernel: they are copied to the right column by
 % \synccounter before each switch, see \side@emit)
@@ -45,7 +45,7 @@
 \fancyhead[L]{\small\leftmark}
 \fancyhead[R]{\small\makebox[\marginparwidth][r]{\rightmark\quad\thepage}}
 \renewcommand{\headrulewidth}{0.3pt}
-\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+\fancypagestyle{plain}{\fancyhf{}\fancyhead[R]{\small\makebox[\marginparwidth][r]{\thepage}}\renewcommand{\headrulewidth}{0pt}}
 
 % ---------- colours (bright on purpose: yellow notes, blue definitions, red theorems, green examples) ----------
 \definecolor{defcol}{HTML}{1565C0}  % blue: definitions

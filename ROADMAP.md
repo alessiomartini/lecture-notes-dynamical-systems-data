@@ -36,6 +36,7 @@ Unico file per todo, idee, decisioni e diario, letto da Projects Overview
 - Bash heredocs collapse `\\` to `\`: LaTeX edits go through the Edit/Write tools.
 
 ## Log
+- 2026-11-05: tight margins and 12pt: geometry 31.5x18 cm with 0.9 left, 0.4+header top, 1.5 bottom, columns 18.8 + 10 cm, page number in the one-line header (no footer). Rebuilt; content that ran below the page edge fixed (history boxes moved or `\Needspace`, `\clearpage`, `\allowdisplaybreaks`).
 - 2026-11-05: layout 16:9 (32x18 cm, PC screen), VS Code setup archived in `lecture-notes/archive/vscode/`, single build `python build.py`. Annotations read with `pdf-annotations.py` before the rebuild: none open in the current PDFs (the 4 of 2026-10-29 on Dynamical Systems were already answered on 2026-11-02). Checked the full build: no content running off the page; four tall history boxes (right column) fixed with `\Needspace`/page break.
 - 2026-11-02: nuovo flusso: annotazioni sul PDF in Dropbox. Risposte alle 3 annotazioni di p.14-15 (Hartman-Grobman, slot friction della Jacobiana, autovettori più lunghi nella figura 2.1)
 - 2026-10-18: FUTURE-ARCHITECTURE.md unito in ROADMAP.md (protocollo unico)
