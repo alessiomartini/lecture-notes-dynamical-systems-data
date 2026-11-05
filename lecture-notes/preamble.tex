@@ -164,8 +164,8 @@
   coltitle=srccol,colbacktitle=white,fonttitle=\bfseries,titlerule=0pt,toptitle=0pt,bottomtitle=0pt,
   before upper={\csname note@inboxtrue\endcsname},note queue}
 % ============================================================
-%  The right column: the reader's notes/answers/feedback in \tiny; examples, proofs, course notes,
-%  history and asides in \scriptsize
+%  The right column: the reader's notes/answers/feedback in \scriptsize; examples, proofs, course notes,
+%  history and asides in \footnotesize
 % ============================================================
 %  \note{...}     the reader's comment/doubt, NEW (not yet read by Claude)
 %  \note*{...}    a request that has been carried out (green DONE tag)
@@ -181,9 +181,9 @@
 \makeatletter
 \tcbset{sidebox/.style={enhanced,colback=#1!25,colframe=#1,boxrule=0.5pt,arc=1pt,
     left=3pt,right=3pt,top=2pt,bottom=2pt,before skip=0pt,after skip=0pt,
-    fontupper=\tiny\sffamily\mdseries\upshape\raggedright,fonttitle=\tiny\sffamily\bfseries,
+    fontupper=\scriptsize\sffamily\mdseries\upshape\raggedright,fonttitle=\scriptsize\sffamily\bfseries,
     before upper={\note@inboxtrue}}}
-\newcommand{\side@tag}[2]{\colorbox{#1}{\textcolor{white}{\bfseries\tiny #2}}\par}
+\newcommand{\side@tag}[2]{\colorbox{#1}{\textcolor{white}{\bfseries\scriptsize #2}}\par}
 % Notes and answered notes are numbered per chapter like footnotes: a small dark-yellow number in
 % the text marks the point where the note was written, the same number starts its box.
 \newcounter{sidenote}[chapter]
@@ -201,14 +201,14 @@
 \crefname{answer}{answer}{answers}
 \globalcounter{answer}
 \newcommand{\answerpart}[1]{\refstepcounter{answer}%
-  \tcbsubtitle[colback=anscol,colframe=anscol,coltext=black,fontupper=\tiny\sffamily\bfseries,
+  \tcbsubtitle[colback=anscol,colframe=anscol,coltext=black,fontupper=\scriptsize\sffamily\bfseries,
     left=3pt,top=0.5pt,bottom=0.5pt,before skip=2pt,after skip=2pt]{ANSWER \theanswer\ifx&#1&\else: #1\fi}}
 \NewDocumentEnvironment{answer}{m O{} +b}{\side@numput{\begin{tcolorbox}[sidebox=notecol,colback=notecol!12]%
   \side@numtag#1\answerpart{#2}#3\end{tcolorbox}}}{}
-% Content boxes of the right column (examples, proofs, course notes, history, asides): \scriptsize,
-% one step above the \tiny of the reader's notes
+% Content boxes of the right column (examples, proofs, course notes, history, asides): \footnotesize,
+% one step above the \scriptsize of the reader's notes
 \tcbset{sidecontent/.style={sidebox=#1,colback=#1!6,breakable,
-    fontupper=\scriptsize\mdseries\upshape\raggedright,fonttitle=\scriptsize\sffamily\bfseries,coltitle=white,colbacktitle=#1}}
+    fontupper=\footnotesize\mdseries\upshape\raggedright,fonttitle=\footnotesize\sffamily\bfseries,coltitle=white,colbacktitle=#1}}
 \NewDocumentEnvironment{aside}{O{} +b}{\side@put{\begin{tcolorbox}[sidecontent=histcol,
   title={\boxtitle{Aside}{#1}}]#2\end{tcolorbox}}}{}
 % Recall: a repetition of something explained earlier (another chapter, earlier in this one),
@@ -221,7 +221,7 @@
 % Examples and proofs keep their theorem-like look (numbering, labels, QED) but go to the right column
 \let\origexample\example \let\endorigexample\endexample
 \RenewDocumentEnvironment{example}{o +b}{\side@put{\begin{tcolorbox}[thmbox=intcol,
-  fontupper=\scriptsize,before skip=0pt,after skip=0pt]%
+  fontupper=\footnotesize,before skip=0pt,after skip=0pt]%
   \IfValueTF{#1}{\begin{origexample}[#1]}{\begin{origexample}}#2\end{origexample}\end{tcolorbox}}}{}
 \NewDocumentEnvironment{sideexample}{o +b}{\IfValueTF{#1}{\begin{example}[#1]}{\begin{example}}#2\end{example}}{}
 \let\origproof\proof \let\endorigproof\endproof
@@ -235,7 +235,7 @@
   \ifx\thm@a\thm@b\gdef\thm@pend{\thm@typeset}\else\thm@typeset\fi#1#2{#3}}
 \newcommand{\thm@look}[2]{\@ifnextchar\begin{\thm@peek{#1{#2}}}{\thm@typeset#1{#2}}}
 \RenewDocumentEnvironment{proof}{o +b}{\par{\edef\@currenvir{\side@pcname}\side@put{\begin{tcolorbox}[thmbox=thmcol,colback=thmcol!3,
-  fontupper=\scriptsize,before skip=0pt,after skip=0pt]%
+  fontupper=\footnotesize,before skip=0pt,after skip=0pt]%
   \IfValueTF{#1}{\begin{origproof}[#1]}{\begin{origproof}}#2\end{origproof}\end{tcolorbox}}%
   \thm@pend}\gdef\thm@pend{}}{}
 \@for\thm@n:=theorem,proposition,lemma,corollary\do{%
@@ -263,7 +263,7 @@
 \NewDocumentEnvironment{history}{O{} +b}{\side@put{\begin{tcolorbox}[histbox,title={\boxtitle{History}{#1}}]#2\end{tcolorbox}}}{}
 \makeatother
 \tcbset{histbox/.style={enhanced,colback=histcol!6,colframe=histcol,boxrule=0.8pt,sharp corners,
-  fonttitle=\scriptsize\sffamily\bfseries,fontupper=\normalfont\scriptsize\raggedright,coltitle=white,colbacktitle=histcol,
+  fonttitle=\footnotesize\sffamily\bfseries,fontupper=\normalfont\footnotesize\raggedright,coltitle=white,colbacktitle=histcol,
   left=18pt,right=18pt,top=6pt,bottom=3pt,before skip=0pt,after skip=0pt,
   before upper={\csname note@inboxtrue\endcsname},
   overlay={
@@ -286,7 +286,7 @@
   before skip=5pt,after skip=5pt]%
   \side@tag{\req@col}{\MakeUppercase{#1}}%
   {\itshape #2.}\ #3%
-  \tcbsubtitle[colback=anscol,colframe=anscol,coltext=black,fontupper=\scriptsize\sffamily\bfseries,
+  \tcbsubtitle[colback=anscol,colframe=anscol,coltext=black,fontupper=\footnotesize\sffamily\bfseries,
     left=3pt,top=0.5pt,bottom=0.5pt,before skip=2pt,after skip=2pt]{WHAT WAS DONE}#4\end{tcolorbox}}
 \makeatother
 
