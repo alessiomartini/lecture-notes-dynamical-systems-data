@@ -58,3 +58,7 @@ Sezioni: `## <fase>` (checkbox, contano nella percentuale), `## Idee` (checkbox,
 - Non riscrivere né riordinare le voci esistenti senza motivo; non cancellare le voci completate.
 - Se `ROADMAP.md` non esiste, crealo da `templates/ROADMAP.md` di projects-overview.
 - Includi l'aggiornamento di `ROADMAP.md` nello stesso commit del lavoro.
+
+## Scroll book (2026-11-05)
+
+`build/book.pdf` is a **continuous-scroll** book: one long page per chapter (no page breaks inside a chapter), bookmarks per chapter; chapter PDFs are in `lecture-notes/build/scroll/`. `python build.py` recompiles only the chapters whose .tex changed and reassembles (a few seconds to a minute); `python build.py ch05` forces a chapter; `python build.py all` = full latexmk build + all chapters; `python build.py pages` = old paged book (`build/book-pages.pdf`, use it to check Overfull boxes). Mechanism: `scroll.py` + `\ifdefined\scrollmode` in `preamble.tex` (100 cm tall header-free pages, cut to the inked part and stacked; PDF viewers stop around 508 cm, longer chapters are split). Links between chapters are not kept.

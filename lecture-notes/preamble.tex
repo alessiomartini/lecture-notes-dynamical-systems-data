@@ -12,8 +12,13 @@
 % examples, proofs, course notes, history and asides. Every right-column item starts level with the
 % paragraph it belongs to; if the right column is still busy, the text waits (white space).
 % The old A4 print layout was: a4paper,inner=2.4cm,outer=3.6cm,marginparwidth=3.0cm,marginparsep=0.3cm (twoside).
+\ifdefined\scrollmode % continuous-scroll build (scroll.py): tall header-free pages, stacked afterwards
+  \usepackage[paperwidth=31.5cm,paperheight=100cm,top=0.3cm,bottom=0.3cm,left=0.9cm,textwidth=29.3cm,
+    marginparsep=0.5cm,marginparwidth=10cm]{geometry}
+\else
 \usepackage[paperwidth=31.5cm,paperheight=18cm,includehead,top=0.4cm,bottom=1.5cm,left=0.9cm,textwidth=29.3cm,
   marginparsep=0.5cm,marginparwidth=10cm,headheight=14pt,headsep=0.15cm]{geometry} % one-line header holds the page number: no footer
+\fi
 \usepackage{paracol}
 \usepackage{needspace} % \Needspace*{10.5cm} before a tall unbreakable right-column box (history) that would run off the page
 \setcolumnwidth{18.8cm/0.5cm,10cm}
@@ -46,6 +51,14 @@
 \fancyhead[R]{\small\makebox[\marginparwidth][r]{\rightmark\quad\thepage}}
 \renewcommand{\headrulewidth}{0.3pt}
 \fancypagestyle{plain}{\fancyhf{}\fancyhead[R]{\small\makebox[\marginparwidth][r]{\thepage}}\renewcommand{\headrulewidth}{0pt}}
+\ifdefined\scrollmode
+  \raggedbottom \pagestyle{empty}\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}}
+  % first and last page of the \include d chapter, for scroll.py
+  \newcounter{scrollabs}\newwrite\scrollpg\immediate\openout\scrollpg=\jobname.scrollpages
+  \AddToHook{shipout/before}{\stepcounter{scrollabs}}
+  \AddToHook{include/before}{\immediate\write\scrollpg{\the\numexpr\value{scrollabs}+1\relax}}
+  \AddToHook{include/after}{\immediate\write\scrollpg{\the\value{scrollabs}}}
+\fi
 
 % ---------- colours (bright on purpose: yellow notes, blue definitions, red theorems, green examples) ----------
 \definecolor{defcol}{HTML}{1565C0}  % blue: definitions
