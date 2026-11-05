@@ -16,7 +16,7 @@ materials/
   videos.csv                 playlist index -> chapter, video, id, duration
   databook.pdf               the book (local only, gitignored)
 tools/transcripts.py         builds videos.csv, CXX-VYY.txt and lecture-notes/videos.tex
-lecture-notes/               main.tex, preamble.tex, chapters/, .vscode/ (fast build)
+lecture-notes/               main.tex, preamble.tex, chapters/, build.py (full build), archive/vscode/ (old VS Code setup)
 ```
 
 ## Chapters (by topic; sections = videos)
@@ -28,9 +28,9 @@ lecture-notes/               main.tex, preamble.tex, chapters/, .vscode/ (fast b
 ## Build
 ```
 cd lecture-notes
-python .vscode/build.py full      # whole book -> build/main.pdf and build/book.pdf
+python build.py                   # whole book -> build/main.pdf and build/book.pdf
 ```
-In VS Code (LaTeX Workshop) saving a chapter rebuilds only that chapter.
+Page layout: 16:9, 32x18 cm (screen of the PC, PDF viewer in reading mode).
 
 ## Refresh the materials
 ```

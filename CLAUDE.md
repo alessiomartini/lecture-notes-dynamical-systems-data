@@ -38,7 +38,7 @@ preamble machinery, `build.py`, `tools/transcripts.py`): when in doubt, do as th
   Edit/Write tools.
 
 ## Build and check
-`cd lecture-notes && python .vscode/build.py full`, then grep `build/main.log` for
+`cd lecture-notes && python build.py` (full build, latexmk, refreshes `build/book.pdf`; the VS Code per-chapter build was archived in `lecture-notes/archive/vscode/`, 2026-11-05). Page is 16:9 (32x18 cm): check figures/tables taller than ~14.5 cm and right-column boxes running off the page. Then grep `build/main.log` for
 `\.tex:[0-9]+:`, `undefined`, `Overfull`; look at the rendered pages (Read tool on `build/main.pdf`).
 Commit and push after each verified chapter, on main (no branch/PR).
 
