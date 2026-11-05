@@ -80,7 +80,23 @@ def compile_chapter(p):
     return out
 
 
-def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0, meta=None):
+def resolve_links(w, dest_map):
+    """Turn named-destination links into explicit [page /XYZ left top null] ones: works in every viewer."""
+    from pypdf.generic import ArrayObject, FloatObject, NameObject, NullObject
+    for pg in w.pages:
+        for ref in pg.get('/Annots') or []:
+            a = ref.get_object()
+            act = a.get('/A')
+            if act is None or str(act.get('/S')) != '/GoTo' or not isinstance(act.get('/D'), str):
+                continue
+            hit = dest_map.get(str(act['/D']))
+            if hit:
+                k, left, top = hit
+                act[NameObject('/D')] = ArrayObject([w.pages[k].indirect_reference, NameObject('/XYZ'),
+                                                     FloatObject(left), FloatObject(top), NullObject()])
+
+
+def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0, meta=None, resolve=False):
     """Stack the pages first..last of `inp` into long pages (<= maxcm; a new one also starts at the 1-based page
     numbers in `breaks`). Pages are cut to their inked part (no header, no empty bottom). Link annotations and named
     destinations are carried over (positions translated), so cross-references keep working."""
@@ -138,6 +154,7 @@ def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0
         if len(links):
             pg[NameObject('/Annots')] = links
         w.add_page(pg)
+    dest_map = {}
     for name, d in rd.named_destinations.items():
         if name.startswith('page.') or name == 'Doc-Start':
             continue
@@ -150,6 +167,9 @@ def stitch(inp, out, first=1, last=None, breaks=(), maxcm=480, gap=3.0, pad=12.0
             top = (float(d.top) if d.top is not None else float(rd.pages[i].mediabox.height)) + ty
             left = float(d.left) if d.left is not None else 0.0
             w.add_named_destination_object(Destination(name, w.pages[k].indirect_reference, Fit.xyz(left, top, 0)))
+            dest_map[name] = (k, left, top)
+    if resolve:
+        resolve_links(w, dest_map)
     if meta:
         w.add_metadata(meta)
     w.write(out)
@@ -160,6 +180,7 @@ def assemble():
     from pypdf import PdfReader, PdfWriter
     from pypdf.generic import Destination, Fit
     w = PdfWriter()
+    dest_map = {}
     for p, title in includes():
         f = os.path.join(S, stem(p) + '.pdf')
         if not os.path.exists(f):
@@ -173,9 +194,11 @@ def assemble():
                 i = rd.get_destination_page_number(d)
                 w.add_named_destination_object(Destination(name, w.pages[first + i].indirect_reference,
                                                             Fit.xyz(float(d.left or 0), float(d.top or 0), 0)))
+                dest_map[name] = (first + i, float(d.left or 0), float(d.top or 0))
             except Exception:
                 pass
         w.add_outline_item(title, first)
+    resolve_links(w, dest_map)
     w.add_metadata({'/Title': os.path.basename(os.getcwd())})
     out = os.path.join(B, 'book.pdf')
     try:
