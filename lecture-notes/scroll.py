@@ -72,6 +72,17 @@ def compile_chapter(p):
         if nums and not p.endswith('ch00-requests'):
             first = nums[0]   # the chapter is the last thing typeset: its pages run to the end of the PDF
             breaks = tuple(nums[1:])   # page numbers where \scrollbreak started a new long page
+            # The shipout counter can run ahead of the real page number (e.g. after a \part page), which would cut the
+            # top of the chapter: take the first page that starts with the chapter/appendix heading instead.
+            import pypdfium2 as pdfium
+            doc = pdfium.PdfDocument(pdf)
+            for i in range(len(doc)):
+                head = doc[i].get_textpage().get_text_range()[:12].lstrip()
+                if head.startswith(('Chapter', 'Appendix')):
+                    delta = (i + 1) - first
+                    first, breaks = i + 1, tuple(b + delta for b in breaks)
+                    break
+            doc.close()
     out = os.path.join(S, stem(p) + '.pdf')
     with LOCK:   # pdfium is not thread-safe: stitch one chapter at a time (pdflatex runs stay parallel)
         n = stitch(pdf, out, first, last, breaks)
