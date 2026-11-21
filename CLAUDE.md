@@ -1,6 +1,7 @@
 # Instructions for Claude — Brunton data-driven dynamical systems notes
 
 @~/.claude/templates/lecture-notes/RULES.md
+If RULES.md is missing (cloud session), the rules below still apply; don't recreate it.
 The setup is copied from `../lecture-notes-economics-of-money-and-banking-Perry-Mehrling` (same
 preamble machinery, `build.py`, `tools/transcripts.py`): when in doubt, do as that repo does.
 
@@ -30,9 +31,6 @@ preamble machinery, `build.py`, `tools/transcripts.py`): when in doubt, do as th
   Edit/Write tools.
 
 ## Build and check
-`cd lecture-notes && python build.py` (full build, latexmk, refreshes `build/book.pdf`; the VS Code per-chapter build was archived in `lecture-notes/archive/vscode/`, 2026-11-05). Page is 31.5×18 cm: check figures/tables taller than ~15 cm and right-column boxes running off the page. Then grep `build/main.log` for
-`\.tex:[0-9]+:`, `undefined`, `Overfull`; look at the rendered pages (Read tool on `build/main.pdf`).
-
-## Scroll book
-
-`build/book.pdf` is the continuous-scroll book; chapter PDFs are in `lecture-notes/build/scroll/`. `python build.py` recompiles only the chapters whose .tex changed and reassembles; `python build.py ch05` forces a chapter; `python build.py all` = full latexmk build + all chapters; `python build.py pages` = paged book (`build/book-pages.pdf`, use it to check Overfull boxes). Longer chapters are split into several PDF pages. Links between chapters are not kept.
+- `cd lecture-notes && python build.py` recompiles the changed chapters and refreshes `build/book.pdf` (continuous-scroll book; chapter PDFs in `lecture-notes/build/scroll/`, links between chapters are not kept). `python build.py ch05` forces one chapter, `all` = full latexmk build, `pages` = paged `build/book-pages.pdf` (use it to check Overfull boxes).
+- Page is 31.5x18 cm: keep figures/tables under ~15 cm and right-column boxes on the page.
+- Then grep `build/main.log` for `\.tex:[0-9]+:`, `undefined`, `Overfull`, and look at the rendered pages (Read tool on `build/main.pdf`).
