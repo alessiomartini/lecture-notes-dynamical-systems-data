@@ -30,7 +30,7 @@ lecture-notes/               main.tex, preamble.tex, chapters/, build.py (full b
 cd lecture-notes
 python build.py                   # whole book -> build/main.pdf and build/book.pdf
 ```
-Page layout: 16:9, 32x18 cm (screen of the PC, PDF viewer in reading mode).
+Page layout: 16:9, 31.5x18 cm (screen of the PC, PDF viewer in reading mode).
 
 ## Refresh the materials
 ```
